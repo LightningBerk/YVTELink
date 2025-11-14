@@ -1,0 +1,498 @@
+/*
+	styles.css — High-fashion link-in-bio for Yvette De La Rue
+	Mobile-first, responsive, and accessible
+*/
+
+/* --------------------------------------------------
+	 Fonts (importing here as well to satisfy CSS requirement)
+	 -------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@300;400;600&display=swap');
+
+/* --------------------------------------------------
+	 Design system: variables & global reset
+	 -------------------------------------------------- */
+:root{
+	/* Center-channel focused layout and soft floral theme */
+	--bg-1: #FBF8F7; /* soft off-white */
+	--bg-2: #F8F4F6; /* warmer off-white / pale pink */
+	--accent-pink: #F6D1DD; /* cherry blossom pink */
+	--accent-purple: #6B3A8A; /* rich purple accent */
+	--text: #0f1720; /* dark charcoal for high contrast */
+	--muted: rgba(15,23,32,0.55);
+	--card-bg: rgba(255,255,255,0.85);
+	--glass: rgba(11,10,12,0.04);
+	--shadow-sm: 0 10px 30px rgba(107,58,138,0.06);
+	--shadow-lg: 0 22px 50px rgba(107,58,138,0.08);
+	--radius-lg: 20px;
+	--radius-md: 14px;
+	--max-width: 780px; /* narrower center channel */
+	--space-1: 8px;
+	--space-2: 16px;
+	--space-3: 24px;
+	--space-4: 32px;
+}
+
+*{box-sizing: border-box}
+html,body{height:100%}
+body{
+	margin:0;
+	font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+	background: linear-gradient(180deg,var(--bg-1),var(--bg-2));
+	color:var(--text);
+	-webkit-font-smoothing:antialiased;
+	-moz-osx-font-smoothing:grayscale;
+	line-height:1.45;
+	-webkit-tap-highlight-color:transparent;
+	padding:var(--space-4) 0;
+}
+
+.container{
+	width:100%;
+	max-width:var(--max-width);
+	margin:0 auto;
+	padding:0 var(--space-2);
+}
+
+/* Utility */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+a{color:inherit;text-decoration:none}
+
+/* Smooth transitions globally */
+*{transition:all 0.18s ease}
+
+/* --------------------------------------------------
+	 Header
+	 -------------------------------------------------- */
+.site-header{position:relative;margin-bottom:clamp(var(--space-4), 8vw, 60px);padding:clamp(var(--space-3), 5vw, var(--space-4)) 0;border-bottom:1px solid rgba(107,58,138,0.08);backdrop-filter:blur(10px)}
+.site-header .container{text-align:center}
+.brand{font-family:'Outfit',sans-serif;font-weight:700;letter-spacing:0.8px;font-size:clamp(1.4rem, 4vw, 2rem);color:var(--text);text-transform:uppercase;background:linear-gradient(135deg, var(--accent-purple), var(--accent-pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* --------------------------------------------------
+	 HERO
+	 -------------------------------------------------- */
+.hero{display:flex;align-items:center;justify-content:center;padding:var(--space-4) 0}
+.hero-layout{display:flex;flex-direction:column;width:100%;gap:var(--space-3)}
+.hero-left{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;flex-shrink:0}
+.hero-right{display:flex;flex-direction:column;align-items:center;text-align:center;width:100%;gap:var(--space-2)}
+.hero-right{order:-1} /* Mobile: show links above image */
+.hero-image{margin:0;width:100%;max-width:560px;border-radius:var(--radius-lg);overflow:hidden;box-shadow:0 18px 50px rgba(107,58,138,0.08);background:#f5f5f5}
+.hero-image img{width:100%;height:auto;display:block;object-fit:cover}
+/* Blurb under image */
+.hero-blurb{margin-top:var(--space-2);text-align:center}
+
+#hero-title{font-family:'Outfit',sans-serif;font-weight:600;margin:0;font-size:1.6rem}
+.tagline{margin:0;font-size:0.98rem;color:var(--muted)}
+.subline{margin:0;color:rgba(15,23,32,0.65);font-size:0.92rem}
+
+.social-bar{display:flex;gap:var(--space-2);margin-top:var(--space-3)}
+.social-pill{display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:999px;
+	background: linear-gradient(180deg, var(--accent-pink), rgba(246,209,221,0.6));
+	box-shadow: 0 8px 26px rgba(107,58,138,0.06), inset 0 1px 0 rgba(255,255,255,0.6);
+	font-weight:600;font-family:'Outfit',sans-serif;font-size:0.95rem;color:var(--accent-purple);
+}
+.social-pill svg{width:18px;height:18px;display:block}
+.social-pill svg rect,.social-pill svg path,.social-pill svg circle{stroke:currentColor;fill:none;stroke-width:1.4}
+.social-pill svg .icon-fill{fill:currentColor;stroke:none}
+.social-pill svg{width:18px;height:18px;display:block}
+.social-pill svg rect,.social-pill svg path,.social-pill svg circle{stroke:currentColor;fill:none;stroke-width:1.4}
+.social-pill svg .icon-fill{fill:currentColor;stroke:none}
+.social-pill:focus{outline:2px solid rgba(244,217,160,0.18);outline-offset:3px}
+.social-pill:hover{transform:translateY(-4px) scale(1.03);box-shadow: var(--shadow-lg);filter:brightness(1.02)}
+
+/* --------------------------------------------------
+	 Link stack (link-in-bio cards)
+	 -------------------------------------------------- */
+.links-section{margin-top:var(--space-4)}
+.links-stack{display:flex;flex-direction:column;gap:var(--space-2);align-items:center}
+.links-stack .link-card{width:100%;max-width:540px;background:linear-gradient(180deg, rgba(255,255,255,0.92), rgba(246,209,221,0.18));
+	border-radius:var(--radius-lg);padding:18px 20px;display:flex;align-items:center;justify-content:space-between;
+	box-shadow: var(--shadow-sm);border:1px solid rgba(107,58,138,0.06);backdrop-filter: blur(6px);
+}
+.link-left h3{margin:0;font-family:'Outfit',sans-serif;font-size:1.02rem;font-weight:600}
+.link-left p{margin:6px 0 0;color:var(--muted);font-size:0.88rem}
+.link-right{font-size:1.22rem;opacity:0.9;transition:transform 0.18s ease}
+.link-card:hover{transform:scale(1.02);box-shadow:var(--shadow-lg);filter:brightness(1.02)}
+.link-card:hover .link-right{transform:translateX(6px)}
+
+/* Slight variant on focus for keyboard users */
+.link-card:focus{outline:3px solid rgba(107,58,138,0.08);outline-offset:6px}
+
+/* --------------------------------------------------
+	 Spotlight card
+	 -------------------------------------------------- */
+.spotlight-card{max-width:540px;margin:var(--space-3) auto;padding:16px;border-radius:18px;border:1px solid rgba(107,58,138,0.14);
+	background:linear-gradient(180deg, rgba(246,209,221,0.14), rgba(255,255,255,0.95));box-shadow:0 18px 50px rgba(107,58,138,0.06);
+}
+.spotlight-content{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.spotlight-label{color:var(--muted);font-size:0.78rem}
+.spotlight-cta .btn{padding:10px 16px;border-radius:12px}
+
+/* --------------------------------------------------
+	 Buttons
+	 -------------------------------------------------- */
+.btn{display:inline-block;font-family:'Outfit',sans-serif;font-weight:600;border:0;cursor:pointer}
+.btn:focus{outline:3px solid rgba(107,58,138,0.12);outline-offset:3px}
+.btn-gold{background:linear-gradient(180deg,var(--accent-pink),#f3bcd2);color:var(--text);border-radius:12px;padding:8px 14px}
+.btn-cta{background:linear-gradient(180deg,var(--accent-pink),var(--accent-purple));color:#fff;border-radius:14px;padding:10px 16px}
+
+/* --------------------------------------------------
+	 Email sign-up
+	 -------------------------------------------------- */
+.email-section{margin-top:var(--space-4);text-align:center}
+.email-sub{color:var(--muted);margin-top:6px}
+.email-form{display:flex;flex-direction:column;gap:var(--space-2);align-items:center;margin-top:var(--space-2)}
+.email-form input[type="email"]{width:100%;max-width:420px;padding:12px 14px;border-radius:12px;background:#fff;border:1px solid rgba(15,23,32,0.06);color:var(--text);font-size:0.96rem}
+.email-form input[type="email"]:focus{outline:none;box-shadow:0 6px 26px rgba(107,58,138,0.08);border-color:rgba(107,58,138,0.12)}
+.form-note{margin-top:10px;font-size:0.9rem;color:var(--muted)}
+.note-success{color:var(--accent-purple)}
+.note-error{color:#ff8b8b}
+
+/* --------------------------------------------------
+	 Footer
+	 -------------------------------------------------- */
+.site-footer{margin-top:var(--space-4)}
+.footer-inner{display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center;font-size:0.86rem;color:var(--muted)}
+.footer-links{display:flex;gap:12px}
+.footer-links a{color:var(--accent-purple);font-size:0.88rem}
+
+/* --------------------------------------------------
+	 Responsive breakpoints
+	 -------------------------------------------------- */
+@media (min-width:600px){
+	.hero-layout{gap:var(--space-3)}
+	#hero-title{font-size:2rem}
+	.links-stack{gap:var(--space-3)}
+	.email-form{flex-direction:row;justify-content:center}
+	.email-form input[type="email"]{max-width:360px}
+}
+
+@media (min-width:900px){
+	body{padding:var(--space-6) 0}
+	.hero{padding:var(--space-6) 0}
+	.hero-layout{flex-direction:row;align-items:flex-start;gap:var(--space-4)}
+	.hero-left{width:auto;flex:0 0 auto;align-items:flex-start;order:0}
+	.hero-right{align-items:flex-start;text-align:left;width:auto;flex:1;order:0}
+	.hero-image{max-width:380px;flex-shrink:0}
+	.links-stack .link-card{max-width:600px}
+	.spotlight-card{max-width:600px}
+	.email-form input[type="email"]{max-width:420px}
+	.email-form{gap:12px}
+	.footer-inner{flex-direction:row;justify-content:space-between;width:100%;align-items:center}
+}
+
+/* Prevent horizontal overflow */
+html,body{overflow-x:hidden}
+
+/* --------------------------------------------------
+   Parallax decorative layers
+   -------------------------------------------------- */
+.parallax{
+	position:fixed;
+	inset:0;
+	width:100%;
+	height:100%;
+	pointer-events:none;
+	overflow:hidden;
+	z-index:0;
+}
+.parallax-layer{
+	position:absolute;
+	left:50%;
+	top:-6vh;
+	transform:translate3d(-50%,0,0);
+	will-change:transform, opacity;
+	opacity:0.95;
+	max-width:1800px;
+	width:140%;
+	height:auto;
+}
+
+/* Hide inline SVG layers when using CSS-only parallax visuals (avoid duplication) */
+.parallax.svg-hidden svg{display:none}
+
+/* CSS-only parallax layers (visual fallback / alternative)
+	 These are animated (time-based) layers that create a depth illusion without JS.
+*/
+.parallax-mid-css{position:absolute;left:50%;top:0;transform:translate3d(-50%,0,0);width:140%;height:100%;pointer-events:none;z-index:0}
+.parallax{--back-opacity:0.28;--mid-opacity:0.42;--front-opacity:0.68}
+
+/* Parallax background with drifting blossoms */
+.parallax{
+	position:fixed;
+	inset:0;
+	width:100%;
+	height:100%;
+	pointer-events:none;
+	overflow:hidden;
+	z-index:0;
+}
+
+.parallax::before{
+	content:'';
+	position:fixed;
+	inset:0;
+	background-image:
+		radial-gradient(circle at 8% 10%, rgba(246,209,221,0.28) 0 7%, transparent 11%),
+		radial-gradient(circle at 32% 20%, rgba(107,58,138,0.22) 0 10%, transparent 14%),
+		radial-gradient(circle at 58% 12%, rgba(255,182,203,0.25) 0 12%, transparent 16%),
+		radial-gradient(circle at 78% 25%, rgba(246,209,221,0.24) 0 9%, transparent 13%),
+		radial-gradient(circle at 15% 75%, rgba(255,182,203,0.26) 0 11%, transparent 15%),
+		radial-gradient(circle at 85% 70%, rgba(107,58,138,0.2) 0 8%, transparent 12%);
+	background-repeat:no-repeat;
+	background-size:clamp(180px,45vw,1100px) clamp(140px,35vw,850px),
+	             clamp(150px,35vw,850px) clamp(110px,27.5vw,650px),
+	             clamp(160px,38vw,950px) clamp(120px,30vw,750px),
+	             clamp(140px,33vw,800px) clamp(100px,25vw,600px),
+	             clamp(170px,40vw,1000px) clamp(130px,32.5vw,800px),
+	             clamp(150px,36vw,900px) clamp(115px,28.75vw,700px);
+	background-position:8% 10%, 32% 20%, 58% 12%, 78% 25%, 15% 75%, 85% 70%;
+	/* remove background-attachment to allow transform-based parallax */
+	z-index:0;pointer-events:none;
+	opacity:0.85;filter: blur(12px);
+	animation: drift-back 16s ease-in-out infinite;
+	/* move layer using transform driven by --scroll-back-y */
+	transform: translate3d(0, var(--scroll-back-y, 0px), 0);
+	will-change:transform, background-position;
+}
+
+.parallax-mid-css{
+	position:fixed;
+	inset:0;
+	z-index:0;
+	pointer-events:none;
+	background-image:
+		radial-gradient(circle at 12% 72%, rgba(246,209,221,0.35) 0 11%, transparent 16%),
+		radial-gradient(circle at 40% 44%, rgba(255,182,203,0.32) 0 16%, transparent 20%),
+		radial-gradient(circle at 72% 62%, rgba(107,58,138,0.28) 0 16%, transparent 20%),
+		radial-gradient(circle at 20% 30%, rgba(246,209,221,0.3) 0 13%, transparent 18%),
+		radial-gradient(circle at 60% 8%, rgba(255,182,203,0.27) 0 12%, transparent 17%);
+	background-repeat:no-repeat;
+	background-size:clamp(190px,42vw,950px) clamp(150px,33.5vw,750px),
+	             clamp(170px,38vw,850px) clamp(135px,30vw,675px),
+	             clamp(180px,40vw,900px) clamp(140px,31.5vw,700px),
+	             clamp(160px,36vw,800px) clamp(120px,27vw,600px),
+	             clamp(150px,35vw,750px) clamp(110px,24.5vw,550px);
+	background-position:12% 72%, 40% 44%, 72% 62%, 20% 30%, 60% 8%;
+	/* transform-based parallax for more reliable scroll response */
+	opacity:0.92;filter: blur(10px);
+	animation: drift-mid 14s ease-in-out infinite;
+	transform: translate3d(0, var(--scroll-mid-y, 0px), 0);
+	will-change:transform, background-position;
+}
+
+.parallax::after{
+	content:'';
+	position:fixed;
+	inset:0;
+	background-image:
+		radial-gradient(circle at 18% 84%, rgba(255,235,241,0.4) 0 13%, transparent 18%),
+		radial-gradient(circle at 48% 22%, rgba(246,209,221,0.38) 0 18%, transparent 24%),
+		radial-gradient(circle at 82% 44%, rgba(255,182,203,0.35) 0 11%, transparent 16%),
+		radial-gradient(circle at 25% 15%, rgba(255,182,203,0.36) 0 14%, transparent 19%),
+		radial-gradient(circle at 70% 75%, rgba(246,209,221,0.37) 0 15%, transparent 20%);
+	background-repeat:no-repeat;
+	background-size:clamp(170px,38vw,850px) clamp(130px,29vw,650px),
+	             clamp(150px,33vw,750px) clamp(120px,27vw,600px),
+	             clamp(130px,30vw,650px) clamp(100px,22.5vw,500px),
+	             clamp(140px,32vw,700px) clamp(105px,23.5vw,525px),
+	             clamp(160px,36vw,800px) clamp(120px,27vw,600px);
+	background-position:18% 84%, 48% 22%, 82% 44%, 25% 15%, 70% 75%;
+	/* transform-based parallax for front layer */
+	z-index:0;pointer-events:none;
+	opacity:0.88;filter: blur(8px);
+	animation: drift-front 12s ease-in-out infinite;
+	transform: translate3d(0, var(--scroll-front-y, 0px), 0);
+	will-change:transform, background-position;
+}
+
+/* Drift animations using background-position shifts */
+@keyframes drift-back{
+	0%{background-position:8% 10%, 32% 20%, 58% 12%, 78% 25%, 15% 75%, 85% 70%}
+	25%{background-position:8.2% 9.5%, 32.3% 20.2%, 58.2% 11.8%, 78.2% 24.8%, 15.3% 75.2%, 85.2% 69.8%}
+	50%{background-position:7.8% 10.3%, 31.7% 19.8%, 57.8% 12.2%, 77.8% 25.2%, 14.7% 75.3%, 84.8% 70.2%}
+	75%{background-position:8.1% 9.9%, 32.1% 20.1%, 58.1% 11.9%, 78.1% 25.1%, 15.1% 75.1%, 85.1% 70%}
+	100%{background-position:8% 10%, 32% 20%, 58% 12%, 78% 25%, 15% 75%, 85% 70%}
+}
+
+@keyframes drift-mid{
+	0%{background-position:12% 72%, 40% 44%, 72% 62%, 20% 30%, 60% 8%}
+	25%{background-position:12.3% 71.5%, 40.3% 43.7%, 72.2% 61.8%, 20.2% 29.8%, 60.3% 7.8%}
+	50%{background-position:11.7% 72.4%, 39.7% 44.3%, 71.8% 62.2%, 19.8% 30.2%, 59.7% 8.2%}
+	75%{background-position:12.1% 71.9%, 40.1% 44.1%, 72.1% 61.9%, 20.1% 30.1%, 60.1% 8%}
+	100%{background-position:12% 72%, 40% 44%, 72% 62%, 20% 30%, 60% 8%}
+}
+
+@keyframes drift-front{
+	0%{background-position:18% 84%, 48% 22%, 82% 44%, 25% 15%, 70% 75%}
+	25%{background-position:18.4% 83.4%, 48.4% 21.6%, 82.4% 43.6%, 25.4% 14.6%, 70.4% 74.6%}
+	50%{background-position:17.6% 84.6%, 47.6% 22.4%, 81.6% 44.4%, 24.6% 15.4%, 69.6% 75.4%}
+	75%{background-position:18.2% 83.8%, 48.2% 21.8%, 82.2% 43.8%, 25.2% 14.8%, 70.2% 74.8%}
+	100%{background-position:18% 84%, 48% 22%, 82% 44%, 25% 15%, 70% 75%}
+}
+
+/* Individual drift animations for each blossom with unique timings and subtle motion */
+@keyframes drift-bloom-1{
+	0%, 100%{ filter: drop-shadow(0 0 0px rgba(0,0,0,0)); }
+	50%{ filter: drop-shadow(0 0.8px 0px rgba(0,0,0,0.02)); }
+}
+@keyframes drift-bloom-2{
+	0%, 100%{ opacity: 0.92; }
+	50%{ opacity: 0.96; }
+}
+@keyframes drift-bloom-3{
+	0%, 100%{ opacity: 0.88; }
+	50%{ opacity: 0.94; }
+}
+@keyframes drift-bloom-4{
+	0%, 100%{ opacity: 0.90; }
+	50%{ opacity: 0.95; }
+}
+@keyframes drift-bloom-5{
+	0%, 100%{ opacity: 0.85; }
+	50%{ opacity: 0.93; }
+}
+@keyframes drift-bloom-6{
+	0%, 100%{ opacity: 0.82; }
+	50%{ opacity: 0.92; }
+}.parallax-mid-css{
+	position:fixed;inset:0;z-index:0;pointer-events:none;
+	background-image:
+		radial-gradient(circle at 12% 72%, rgba(246,209,221,0.35) 0 11%, transparent 16%),
+		radial-gradient(circle at 40% 44%, rgba(255,182,203,0.32) 0 16%, transparent 20%),
+		radial-gradient(circle at 72% 62%, rgba(107,58,138,0.28) 0 16%, transparent 20%),
+		radial-gradient(circle at 20% 30%, rgba(246,209,221,0.3) 0 13%, transparent 18%),
+		radial-gradient(circle at 60% 8%, rgba(255,182,203,0.27) 0 12%, transparent 17%);
+	background-repeat:no-repeat;
+	background-size:clamp(190px,42vw,950px) clamp(150px,33.5vw,750px),
+	             clamp(170px,38vw,850px) clamp(135px,30vw,675px),
+	             clamp(180px,40vw,900px) clamp(140px,31.5vw,700px),
+	             clamp(160px,36vw,800px) clamp(120px,27vw,600px),
+	             clamp(150px,35vw,750px) clamp(110px,24.5vw,550px);
+	background-position:
+		12% calc(72% + var(--scroll-mid-y, 0px)),
+		40% calc(44% + var(--scroll-mid-y, 0px) * 0.4),
+		72% calc(62% + var(--scroll-mid-y, 0px) * 0.35),
+		20% calc(30% + var(--scroll-mid-y, 0px) * 0.38),
+		60% calc(8% + var(--scroll-mid-y, 0px) * 0.42);
+	animation:
+		drift-bloom-3 12s ease-in-out infinite,
+		drift-bloom-1 14s ease-in-out infinite 2s,
+		drift-bloom-4 16s ease-in-out infinite 3s,
+		drift-bloom-2 15s ease-in-out infinite 1s,
+		drift-bloom-5 17s ease-in-out infinite 4s;
+	opacity:0.92;z-index:0;filter: blur(10px);
+	background-attachment: fixed;
+}
+
+.parallax::after{
+	content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+	background-image:
+		radial-gradient(circle at 18% 84%, rgba(255,235,241,0.4) 0 13%, transparent 18%),
+		radial-gradient(circle at 48% 22%, rgba(246,209,221,0.38) 0 18%, transparent 24%),
+		radial-gradient(circle at 82% 44%, rgba(255,182,203,0.35) 0 11%, transparent 16%),
+		radial-gradient(circle at 25% 15%, rgba(255,182,203,0.36) 0 14%, transparent 19%),
+		radial-gradient(circle at 70% 75%, rgba(246,209,221,0.37) 0 15%, transparent 20%);
+	background-repeat:no-repeat;
+	background-size:clamp(170px,38vw,850px) clamp(130px,29vw,650px),
+	             clamp(150px,33vw,750px) clamp(120px,27vw,600px),
+	             clamp(130px,30vw,650px) clamp(100px,22.5vw,500px),
+	             clamp(140px,32vw,700px) clamp(105px,23.5vw,525px),
+	             clamp(160px,36vw,800px) clamp(120px,27vw,600px);
+	background-position:
+		18% calc(84% + var(--scroll-front-y, 0px)),
+		48% calc(22% + var(--scroll-front-y, 0px) * 0.5),
+		82% calc(44% + var(--scroll-front-y, 0px) * 0.45),
+		25% calc(15% + var(--scroll-front-y, 0px) * 0.48),
+		70% calc(75% + var(--scroll-front-y, 0px) * 0.52);
+	opacity:0.88;z-index:0;filter: blur(8px);
+	animation:
+		drift-bloom-2 10s ease-in-out infinite,
+		drift-bloom-4 12s ease-in-out infinite 1s,
+		drift-bloom-5 14s ease-in-out infinite 2s,
+		drift-bloom-1 11s ease-in-out infinite 3s,
+		drift-bloom-3 13s ease-in-out infinite 4s;
+	background-attachment: fixed;
+}
+
+/* Individual drift animations for each blossom with unique timings */
+@keyframes drift-bloom-1{
+	0%, 100%{background-position-y: 0}
+	50%{background-position-y: 1.2%}
+}
+@keyframes drift-bloom-2{
+	0%, 100%{background-position-y: 0}
+	50%{background-position-y: -0.8%}
+}
+@keyframes drift-bloom-3{
+	0%, 100%{background-position-y: 0}
+	50%{background-position-y: 1.5%}
+}
+@keyframes drift-bloom-4{
+	0%, 100%{background-position-y: 0}
+	50%{background-position-y: -1%}
+}
+@keyframes drift-bloom-5{
+	0%, 100%{background-position-y: 0}
+	50%{background-position-y: 0.9%}
+}
+@keyframes drift-bloom-6{
+	0%, 100%{background-position-y: 0}
+	50%{background-position-y: -1.2%}
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+	.parallax::before,.parallax::after,.parallax-mid-css{animation:none;transform:none}
+}
+
+/* Ensure content renders above decorative layers */
+header, main, footer{position:relative;z-index:1}
+
+@media (max-width:420px){
+	.parallax-layer{opacity:0.6}
+}
+
+/* debug overlay removed */
+
+
+/* Debug helper removed */
+
+/* DOM blossoms: visible, transform-animated elements for reliable drift + parallax */
+.blossoms{position:fixed;inset:0;pointer-events:none;z-index:0}
+.blossoms{transform:translate3d(0,var(--scroll-blossoms,0px),0);will-change:transform}
+.blossom{position:fixed;border-radius:50%;background:radial-gradient(circle at 30% 30%, rgba(255,230,240,0.95), rgba(246,209,221,0.9));box-shadow:0 8px 22px rgba(107,58,138,0.06);filter:blur(0.6px);opacity:0.95;will-change:transform,opacity}
+
+/* size/position presets for different depth layers */
+.b-back{opacity:0.82;filter:blur(10px);}
+.b-mid{opacity:0.9;filter:blur(6px)}
+.b-front{opacity:0.98;filter:blur(2px)}
+
+/* individual blossoms positions and sizes (responsive with clamp) */
+.b1{left:6%;top:8%;width:clamp(110px,22vw,400px);height:clamp(90px,18vw,320px);}
+.b2{left:28%;top:22%;width:clamp(90px,18vw,320px);height:clamp(75px,16vw,260px);}
+.b3{left:68%;top:10%;width:clamp(140px,26vw,500px);height:clamp(110px,20vw,380px);}
+.b4{left:14%;top:44%;width:clamp(120px,24vw,420px);height:clamp(95px,19vw,340px);}
+.b5{left:46%;top:36%;width:clamp(100px,20vw,360px);height:clamp(80px,16.5vw,300px);}
+.b6{left:76%;top:48%;width:clamp(110px,22vw,400px);height:clamp(90px,18vw,320px);}
+.b7{left:10%;top:78%;width:clamp(80px,16vw,300px);height:clamp(65px,13vw,240px);}
+.b8{left:36%;top:86%;width:clamp(95px,18.5vw,340px);height:clamp(75px,16vw,260px);}
+.b9{left:62%;top:74%;width:clamp(70px,14.5vw,260px);height:clamp(58px,12vw,210px);}
+.b10{left:84%;top:64%;width:clamp(100px,20vw,360px);height:clamp(80px,16.5vw,300px);}
+.b11{left:52%;top:12%;width:clamp(60px,12.5vw,220px);height:clamp(46px,10.5vw,180px);}
+.b12{left:88%;top:24%;width:clamp(72px,14vw,260px);height:clamp(54px,11.5vw,200px);}
+
+/* subtle float animations (different durations/delays per depth) */
+.b-back{animation: float-slow 18s ease-in-out infinite}
+.b-mid{animation: float-mid 12s ease-in-out infinite}
+.b-front{animation: float-fast 9s ease-in-out infinite}
+
+@keyframes float-slow{0%{transform:translate3d(0,0,0) scale(1)}25%{transform:translate3d(-6px,-8px,0) scale(1.01)}50%{transform:translate3d(0,6px,0) scale(0.995)}75%{transform:translate3d(5px,-3px,0) scale(1.002)}100%{transform:translate3d(0,0,0) scale(1)}}
+@keyframes float-mid{0%{transform:translate3d(0,0,0) scale(1)}25%{transform:translate3d(-8px,-10px,0) scale(1.02)}50%{transform:translate3d(0,10px,0) scale(0.99)}75%{transform:translate3d(6px,-6px,0) scale(1.01)}100%{transform:translate3d(0,0,0) scale(1)}}
+@keyframes float-fast{0%{transform:translate3d(0,0,0) scale(1)}25%{transform:translate3d(-12px,-14px,0) scale(1.03)}50%{transform:translate3d(0,14px,0) scale(0.985)}75%{transform:translate3d(8px,-8px,0) scale(1.015)}100%{transform:translate3d(0,0,0) scale(1)}}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+    .blossom{animation:none}
+}
+
+
