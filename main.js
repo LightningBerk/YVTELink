@@ -1,4 +1,4 @@
-// main.js — form interactions (year + email form) and parallax fallback
+// main.js — Footer year and parallax fallback
 (function () {
   'use strict';
 
@@ -6,30 +6,6 @@
   try{
     const yearEl = document.getElementById('year');
     if (yearEl) yearEl.textContent = new Date().getFullYear();
-  }catch(e){}
-
-  // --- Basic email form handling ---
-  try{
-    const form = document.getElementById('signup-form');
-    const email = document.getElementById('email');
-    const note = document.getElementById('form-note');
-
-    if (form && email && note) {
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        if (!email.checkValidity()) {
-          note.textContent = 'Please enter a valid email.';
-          note.classList.add('note-error');
-          email.focus();
-          return;
-        }
-
-        note.textContent = 'Thanks — check your inbox for the first drop.';
-        note.classList.remove('note-error');
-        note.classList.add('note-success');
-        form.reset();
-      });
-    }
   }catch(e){}
 
   // --- Parallax fallback (single, self-contained) ---

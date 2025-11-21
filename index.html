@@ -1,15 +1,15 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Yvette De La Rue | Virtual Muse & Link Hub</title>
-    <meta name="description" content="Yvette De La Rue — virtual model, graphic designer and music producer. Explore photos, exclusive drops, playlists and coffee collaborations." />
-    <meta name="keywords" content="Yvette De La Rue, virtual model, AI model, music producer, graphic designer, link in bio, playlists, exclusive content" />
+    <title>Yvette DeLaRue | Virtual Muse & Link Hub</title>
+    <meta name="description" content="Yvette DeLaRue — virtual model, graphic designer and music producer. Explore photos, exclusive drops, playlists and coffee collaborations." />
+    <meta name="keywords" content="Yvette DeLaRue, virtual model, AI model, music producer, graphic designer, link in bio, playlists, exclusive content" />
 
     <!-- Open Graph -->
-    <meta property="og:title" content="Yvette De La Rue | Virtual Muse & Link Hub" />
-    <meta property="og:description" content="Explore photos, exclusive drops, and playlists from Yvette De La Rue — virtual model and creative." />
+    <meta property="og:title" content="Yvette DeLaRue | Virtual Muse & Link Hub" />
+    <meta property="og:description" content="Explore photos, exclusive drops, and playlists from Yvette DeLaRue — virtual model and creative." />
     <meta property="og:image" content="og-placeholder.jpg" />
 
     <!-- Favicon -->
@@ -24,6 +24,12 @@
     <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+    <header class="site-header" role="banner">
+        <div class="container">
+            <div class="brand">Yvette DeLaRue</div>
+        </div>
+    </header>
+
     <!-- Decorative parallax SVG layers (purely decorative) -->
     <div class="parallax parallax-auto" aria-hidden="true">
         <!-- Background layer: distant blossoms, slowest (made stronger) -->
@@ -121,13 +127,6 @@
             </g>
         </svg>
     </div>
-    <header class="site-header" role="banner">
-        <div class="container">
-            <div class="brand">Yvette De La Rue</div>
-        </div>
-    </header>
-
-    
 
     <main id="main" role="main">
         <!-- HERO -->
@@ -135,8 +134,8 @@
             <div class="container">
                 <div class="hero-layout">
                     <div class="hero-left">
-                        <figure class="hero-image" role="img" aria-label="Yvette De La Rue">
-                            <img src="assets/images/hero.jpg" alt="Yvette De La Rue - Virtual muse and creative" />
+                        <figure class="hero-image" role="img" aria-label="Yvette DeLaRue">
+                            <img src="assets/images/hero.jpg" alt="Yvette DeLaRue - Virtual muse and creative" />
                         </figure>
                         <div class="hero-blurb">
                             <h1 id="hero-title">Yvette DeLaRue</h1>
@@ -153,7 +152,7 @@
                                 </div>
                                 <div class="link-left">
                                     <h3>Exclusive Content</h3>
-                                    <p>Behind-the-scenes & members-only visuals</p>
+                                    <p>Spicy & members-only visuals</p>
                                 </div>
                                 <div class="link-right">→</div>
                             </a>
@@ -164,7 +163,7 @@
                                 </div>
                                 <div class="link-left">
                                     <h3>Instagram</h3>
-                                    <p>Editorial sets & new imagery — weekly drops</p>
+                                    <p>Weekly posts & reels!</p>
                                 </div>
                                 <div class="link-right">→</div>
                             </a>
@@ -175,7 +174,7 @@
                                 </div>
                                 <div class="link-left">
                                     <h3>TikTok</h3>
-                                    <p>Behind-the-scenes clips & creative moments</p>
+                                    <p>Clips & creative moments</p>
                                 </div>
                                 <div class="link-right">→</div>
                             </a>
@@ -186,7 +185,7 @@
                                 </div>
                                 <div class="link-left">
                                     <h3>Listen on Spotify</h3>
-                                    <p>Midnight Espresso & other playlists</p>
+                                    <p>Stream my music!</p>
                                 </div>
                                 <div class="link-right">→</div>
                             </a>
@@ -197,7 +196,7 @@
                                 </div>
                                 <div class="link-left">
                                     <h3>Shop CoffeeBreakDrip</h3>
-                                    <p>Collabs, merch & limited coffee runs</p>
+                                    <p>Collabs, merch & apparel</p>
                                 </div>
                                 <div class="link-right">→</div>
                             </a>
@@ -211,31 +210,23 @@
         <section class="after-hero">
             <div class="container">
 
-                <!-- FEATURED SPOTLIGHT -->
-                <div class="spotlight-card" role="region" aria-labelledby="spotlight-title">
-                    <div class="spotlight-content">
-                        <div>
-                            <small class="spotlight-label">Featured Drop</small>
-                            <h3 id="spotlight-title">Midnight Espresso Playlist</h3>
-                            <p class="muted">Curated late-night beats & lo-fi textures</p>
-                        </div>
-                        <div class="spotlight-cta">
-                            <a class="btn btn-gold" href="#" aria-label="Play Midnight Espresso Playlist">Play Now</a>
-                        </div>
+                <!-- SPOTIFY EMBED -->
+                <section class="spotify-section" aria-labelledby="spotify-title">
+                    <h2 id="spotify-title">Listen on Spotify</h2>
+                    <p class="section-subtitle">Stream Yvette's latest tracks & curated vibes</p>
+                    <div class="spotify-embed-wrapper">
+                        <iframe 
+                            style="border-radius:12px" 
+                            src="https://open.spotify.com/embed/artist/3xhOihgoKIdvgN95I7LBeE?utm_source=generator&theme=0" 
+                            width="100%" 
+                            height="352" 
+                            frameBorder="0" 
+                            allowfullscreen="" 
+                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                            loading="lazy"
+                            title="Yvette DeLaRue on Spotify">
+                        </iframe>
                     </div>
-                </div>
-
-                <!-- EMAIL SIGN-UP -->
-                <section id="newsletter" class="email-section" aria-labelledby="email-title">
-                    <h2 id="email-title">Stay caffeinated & inspired</h2>
-                    <p class="email-sub">Get updates when Yvette drops new sets, visuals, and playlists.</p>
-
-                    <form id="signup-form" class="email-form" action="#" method="post" novalidate>
-                        <label for="email" class="sr-only">Email address</label>
-                        <input id="email" name="email" type="email" placeholder="you@domain.com" required aria-required="true" />
-                        <button class="btn btn-cta" type="submit">Subscribe</button>
-                    </form>
-                    <p class="form-note" id="form-note" aria-live="polite"></p>
                 </section>
             </div>
         </section>
@@ -243,7 +234,7 @@
 
     <footer class="site-footer" role="contentinfo">
         <div class="container footer-inner">
-            <small>© <span id="year">2025</span> Yvette De La Rue. All rights reserved.</small>
+            <small>© <span id="year">2025</span> Yvette DeLaRue. All rights reserved.</small>
             <small class="muted">Yvette is a virtual AI character. All media is digitally generated.</small>
             <nav class="footer-links" aria-label="Footer links">
                 <a href="#contact">Contact</a>
