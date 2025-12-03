@@ -10,24 +10,17 @@
     <!-- Open Graph -->
     <meta property="og:title" content="Yvette DeLaRue | Virtual Muse & Link Hub" />
     <meta property="og:description" content="Explore photos, exclusive drops, and playlists from Yvette DeLaRue — virtual model and creative." />
-    <meta property="og:image" content="og-placeholder.jpg" />
-
-    <!-- Favicon -->
+    <meta property="og:image" content="https://yvettedelarue.com/assets/images/og-image.jpg" />
     <link rel="icon" href="favicon.ico" />
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <!-- Preconnect to Spotify for faster embed load -->
     <link rel="preconnect" href="https://open.spotify.com" />
     <link rel="dns-prefetch" href="//open.spotify.com" />
-    <!-- Preload hero image (add optimized formats when available) -->
     <link rel="preload" as="image" href="assets/images/hero.jpg" />
-    <!-- Canonical URL (update href to production domain) -->
-    <link rel="canonical" href="https://example.com/" />
+    <link rel="canonical" href="https://yvettedelarue.com/" />
 
-    <!-- Stylesheet -->
     <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -37,9 +30,7 @@
         </div>
     </header>
 
-    <!-- Decorative parallax SVG layers (purely decorative) -->
     <div class="parallax parallax-auto" aria-hidden="true">
-        <!-- Background layer: distant blossoms, slowest (made stronger) -->
         <svg class="parallax-layer layer-back" data-speed="0.12" viewBox="0 0 1600 600" preserveAspectRatio="xMidYMid slice">
             <defs>
                 <linearGradient id="petalGradBack" x1="0" x2="1">
@@ -66,7 +57,6 @@
             </g>
         </svg>
 
-        <!-- Mid layer: mid-distance blossoms, medium speed (more visible) -->
         <svg class="parallax-layer layer-mid" data-speed="0.32" viewBox="0 0 1400 500" preserveAspectRatio="xMidYMid slice">
             <defs>
                 <linearGradient id="petalGradMid" x1="0" x2="1">
@@ -92,10 +82,10 @@
                 </g>
             </g>
         </svg>
-        <!-- CSS-only mid layer element (used for CSS parallax fallback/visual) -->
+        </g>
+        </svg>
         <div class="parallax-mid-css" aria-hidden="true"></div>
 
-        <!-- DOM blossoms (animated via CSS transforms for reliable motion) -->
         <div class="blossoms" aria-hidden="true">
             <div class="blossom b-back b1"></div>
             <div class="blossom b-back b2"></div>
@@ -111,7 +101,6 @@
             <div class="blossom b-front b12"></div>
         </div>
 
-        <!-- Foreground layer: close blossoms, fastest (strong and detailed) -->
         <svg class="parallax-layer layer-front" data-speed="0.9" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid slice">
             <defs>
                 <linearGradient id="petalGradFront" x1="0" x2="1">
@@ -136,7 +125,6 @@
     </div>
 
     <main id="main" role="main">
-        <!-- HERO -->
         <section class="hero" aria-labelledby="hero-title">
             <div class="container">
                 <div class="hero-layout">
@@ -151,11 +139,10 @@
                         </div>
                     </div>
                     <div class="hero-right">
-                        <!-- LINK STACK (now aligned with image top) -->
                         <div class="links-stack" role="list">
-                            <a class="link-card" href="https://www.fanvue.com/yvette_delarue" role="listitem" aria-label="Exclusive Content" target="_blank" rel="noopener noreferrer">
+                            <a class="link-card" href="https://www.fanvue.com/yvette_delarue" target="_blank" rel="noopener noreferrer" aria-label="Exclusive Content">
                                 <div class="link-icon">
-                                    <img src="assets/icons/eyes-icon.svg" alt="" width="40" height="40">
+                                    <img src="assets/icons/eyes-icon.svg" alt="Exclusive" width="40" height="40">
                                 </div>
                                 <div class="link-left">
                                     <h3>Exclusive Content</h3>
@@ -164,9 +151,9 @@
                                 <div class="link-right">→</div>
                             </a>
 
-                            <a class="link-card" href="https://www.instagram.com/yvette_delarue/" role="listitem" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+                            <a class="link-card" href="https://www.instagram.com/yvette_delarue/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                                 <div class="link-icon">
-                                    <img src="assets/icons/instagram-icon.svg" alt="" width="40" height="40">
+                                    <img src="assets/icons/instagram-icon.svg" alt="Instagram" width="40" height="40">
                                 </div>
                                 <div class="link-left">
                                     <h3>Instagram</h3>
@@ -175,9 +162,9 @@
                                 <div class="link-right">→</div>
                             </a>
 
-                            <a class="link-card" href="https://www.tiktok.com/@shutterobsession" role="listitem" aria-label="TikTok" target="_blank" rel="noopener noreferrer">
+                            <a class="link-card" href="https://www.tiktok.com/@shutterobsession" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
                                 <div class="link-icon">
-                                    <img src="assets/icons/tiktok-logo.svg" alt="" width="40" height="40">
+                                    <img src="assets/icons/tiktok-logo.svg" alt="TikTok" width="40" height="40">
                                 </div>
                                 <div class="link-left">
                                     <h3>TikTok</h3>
@@ -186,9 +173,9 @@
                                 <div class="link-right">→</div>
                             </a>
 
-                            <a class="link-card" href="https://open.spotify.com/artist/3xhOihgoKIdvgN95I7LBeE?si=abEapc7TRquDwOucCbXgRg" role="listitem" aria-label="Listen on Spotify" target="_blank" rel="noopener noreferrer">
+                            <a class="link-card" href="https://open.spotify.com/artist/3xhOihgoKIdvgN95I7LBeE?si=abEapc7TRquDwOucCbXgRg" target="_blank" rel="noopener noreferrer" aria-label="Listen on Spotify">
                                 <div class="link-icon">
-                                    <img src="assets/icons/spotify-icon.svg" alt="" width="40" height="40">
+                                    <img src="assets/icons/spotify-icon.svg" alt="Spotify" width="40" height="40">
                                 </div>
                                 <div class="link-left">
                                     <h3>Listen on Spotify</h3>
@@ -197,9 +184,9 @@
                                 <div class="link-right">→</div>
                             </a>
 
-                            <a class="link-card" href="https://coffeebreakdrip.com/" role="listitem" aria-label="Shop CoffeeBreakDrip" target="_blank" rel="noopener noreferrer">
+                            <a class="link-card" href="https://coffeebreakdrip.com/" target="_blank" rel="noopener noreferrer" aria-label="Shop CoffeeBreakDrip">
                                 <div class="link-icon">
-                                    <img src="assets/icons/coffeebreak-icon.png" alt="" width="40" height="40">
+                                    <img src="assets/icons/coffeebreak-icon.png" alt="Coffee" width="40" height="40">
                                 </div>
                                 <div class="link-left">
                                     <h3>Shop CoffeeBreakDrip</h3>
@@ -213,15 +200,13 @@
             </div>
         </section>
 
-        <!-- After-hero content wrapper to match closing tags -->
         <section class="after-hero">
             <div class="container">
-
-                <!-- SPOTIFY EMBED -->
                 <section class="spotify-section" aria-labelledby="spotify-title">
                     <h2 id="spotify-title">Listen on Spotify</h2>
                     <p class="section-subtitle">Stream Yvette's latest tracks & curated vibes</p>
                     <div class="spotify-embed-wrapper">
+                        <div class="embed-skeleton" aria-hidden="true"></div>
                         <iframe 
                             style="border-radius:12px" 
                             src="https://open.spotify.com/embed/artist/3xhOihgoKIdvgN95I7LBeE?utm_source=generator&theme=0" 
@@ -231,6 +216,7 @@
                             allowfullscreen="" 
                             allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
                             loading="lazy"
+                            onload="this.previousElementSibling && (this.previousElementSibling.style.display='none')"
                             title="Yvette DeLaRue on Spotify">
                         </iframe>
                     </div>
@@ -249,9 +235,7 @@
             </nav>
         </div>
     </footer>
-    <!-- Debug helper removed in cleanup -->
 
-    <!-- Site script (includes minimal parallax scroll fallback) -->
     <script src="main.js" defer></script>
 </body>
 </html>
