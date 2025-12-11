@@ -84,7 +84,7 @@ a{color:inherit;text-decoration:none}
 	.link-gallery-inner{gap:clamp(var(--space-2),4vw,var(--space-3));align-items:stretch}
 	.link-card{min-height:64vh;border-radius:9px;margin:0 clamp(16px,5vw,22px);width:calc(100% - 2*clamp(16px,5vw,22px))}
 	.link-card-hero{min-height:100vh;border-radius:0;margin:0;width:100vw;max-width:100vw;box-shadow:none;--card-bg:url('assets/images/YVTEBATH-CENSOR.png') !important}
-	.link-card-hero .link-card-content{display:flex;justify-content:center;align-items:center;min-height:100vh;padding-top:228px}
+	.link-card-hero .link-card-content{display:flex;justify-content:center;align-items:center;min-height:100vh;padding-top:218px}
 	.link-card-hero .link-card-button{animation:button-breathe 3s ease-in-out infinite}
 	.link-card-hero .link-card-content h2,
 	.link-card-hero .link-card-content h3,
