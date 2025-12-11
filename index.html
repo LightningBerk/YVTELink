@@ -18,7 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://open.spotify.com" />
     <link rel="dns-prefetch" href="//open.spotify.com" />
-    <link rel="preload" as="image" href="assets/images/hero.jpg" />
+    <link rel="preload" as="image" href="assets/images/fanvueHero.png" />
     <link rel="canonical" href="https://yvettedelarue.com/" />
 
     <link rel="stylesheet" href="styles.css" />
@@ -127,7 +127,7 @@
     <main id="main" role="main">
         <section class="link-gallery" aria-label="Featured links">
             <div class="link-gallery-inner">
-                <article class="link-card link-card-hero fade-in" style="--card-bg: url('assets/images/image_00101_.png')">
+                <article class="link-card link-card-hero fade-in" style="--card-bg: url('assets/images/fanvueHero.png')">
                     <div class="link-card-background" aria-hidden="true"></div>
                     <div class="link-card-overlay" aria-hidden="true"></div>
                     <div class="link-card-content">
@@ -138,7 +138,7 @@
                     </div>
                 </article>
 
-                <article class="link-card fade-in" style="--card-bg: url('assets/images/hero.jpg')">
+                <article class="link-card fade-in" style="--card-bg: url('assets/images/instagramHero.png')">
                     <div class="link-card-background" aria-hidden="true"></div>
                     <div class="link-card-overlay" aria-hidden="true"></div>
                     <div class="link-card-content">
@@ -148,7 +148,7 @@
                     </div>
                 </article>
 
-                <article class="link-card fade-in" style="--card-bg: url('assets/images/hero.jpg')">
+                <article class="link-card fade-in" style="--card-bg: url('assets/images/tiktokHero.png')">
                     <div class="link-card-background" aria-hidden="true"></div>
                     <div class="link-card-overlay" aria-hidden="true"></div>
                     <div class="link-card-content">
@@ -168,41 +168,35 @@
                     </div>
                 </article>
 
-                <article class="link-card fade-in" style="--card-bg: url('assets/images/hero.jpg')">
-                    <div class="link-card-background" aria-hidden="true"></div>
-                    <div class="link-card-overlay" aria-hidden="true"></div>
-                    <div class="link-card-content">
-                        <h3>CoffeeBreakDrip</h3>
-                        <p class="link-card-subtitle">Collabs, merch, and apparel drops.</p>
-                        <a class="link-card-button" href="https://coffeebreakdrip.com/" target="_blank" rel="noopener noreferrer" aria-label="Open CoffeeBreakDrip">Shop the collab</a>
-                    </div>
-                </article>
-            </div>
-        </section>
-
-        <section class="after-hero">
-            <div class="container">
-                <section class="spotify-section" aria-labelledby="spotify-title">
-                    <h2 id="spotify-title">Listen on Spotify</h2>
-                    <p class="section-subtitle">Stream Yvette's latest tracks & curated vibes</p>
-                    <div class="spotify-embed-wrapper">
-                        <div class="embed-skeleton" aria-hidden="true"></div>
+                <!-- Desktop-only Spotify embed to replace the card on wide screens -->
+                <div class="spotify-card-embed fade-in" aria-hidden="true">
+                    <div class="spotify-card-embed-inner">
                         <iframe 
                             style="border-radius:12px" 
                             src="https://open.spotify.com/embed/artist/3xhOihgoKIdvgN95I7LBeE?utm_source=generator&theme=0" 
                             width="100%" 
                             height="352" 
                             frameBorder="0" 
-                            allowfullscreen="" 
                             allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
                             loading="lazy"
-                            onload="this.previousElementSibling && (this.previousElementSibling.style.display='none')"
                             title="Yvette DeLaRue on Spotify">
                         </iframe>
                     </div>
-                </section>
+                </div>
+
+                <article class="link-card fade-in" style="--card-bg: url('assets/images/coffeeBreakHero.jpg')">
+                    <div class="link-card-background" aria-hidden="true"></div>
+                    <div class="link-card-overlay" aria-hidden="true"></div>
+                    <div class="link-card-content">
+                        <h3>CoffeeBreakDrip</h3>
+                        <p class="link-card-subtitle">Collabs, merch, and apparel drops.</p>
+                        <a class="link-card-button" href="https://coffeebreakdrip.com/" target="_blank" rel="noopener noreferrer" aria-label="Open CoffeeBreakDrip">Shop the brand</a>
+                    </div>
+                </article>
             </div>
         </section>
+
+        
     </main>
 
     <footer class="site-footer" role="contentinfo">
