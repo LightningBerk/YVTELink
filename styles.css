@@ -129,17 +129,6 @@ a{color:inherit;text-decoration:none}
 	.spotify-card-embed iframe{display:block;width:100%;height:352px}
 }
 
-.spotify-section{max-width:600px;margin:0 auto var(--space-6) auto;text-align:center}
-.spotify-section h2{font-family:'Outfit',sans-serif;font-size:1.8rem;font-weight:600;margin:0 0 8px 0;background:linear-gradient(135deg, var(--accent-purple), var(--accent-pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.spotify-section .section-subtitle{color:var(--muted);font-size:0.95rem;margin:0 0 var(--space-3) 0}
-.spotify-embed-wrapper{border-radius:var(--radius-lg);overflow:hidden;box-shadow:0 18px 50px rgba(107,58,138,0.12);border:1px solid rgba(107,58,138,0.08);background:linear-gradient(180deg, rgba(246,209,221,0.1), rgba(255,255,255,0.6));position:relative}
-.spotify-embed-wrapper iframe{display:block;width:100%;min-height:352px}
-/* Loading skeleton overlay for Spotify iframe */
-.embed-skeleton{position:absolute;inset:0;border-radius:inherit;pointer-events:none;
-	background:linear-gradient(90deg, rgba(246,209,221,0.22) 25%, rgba(255,255,255,0.5) 50%, rgba(246,209,221,0.22) 75%);
-	background-size:200% 100%;animation:shimmer 1.4s ease-in-out infinite
-}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .site-footer{margin-top:var(--space-6);padding:clamp(var(--space-4), 5vw, var(--space-6)) 0;border-top:2px solid rgba(107,58,138,0.15);background:rgba(255,255,255,0.3);backdrop-filter:blur(15px) saturate(180%);-webkit-backdrop-filter:blur(15px) saturate(180%);box-shadow:0 -4px 20px rgba(107,58,138,0.06)}
 .footer-inner{display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center;font-size:0.88rem;color:var(--muted)}
 .footer-links{display:flex;gap:16px;margin-top:4px}
@@ -147,7 +136,6 @@ a{color:inherit;text-decoration:none}
 .footer-links a:hover{color:var(--accent-pink);transform:translateY(-2px)}
 @media (min-width:900px){
 	body{padding:var(--space-6) 0}
-	.spotify-section{max-width:600px}
 	.footer-inner{flex-direction:row;justify-content:space-between;width:100%;align-items:center}
 }
 
@@ -230,31 +218,7 @@ html,body{overflow-x:hidden}
 	75%{background-position:18.2% 83.8%,48.2% 21.8%,82.2% 43.8%,25.2% 14.8%,70.2% 74.8%}
 }
 
-/* Individual drift animations for each blossom with unique timings and subtle motion */
-@keyframes drift-bloom-1{
-	0%, 100%{ filter: drop-shadow(0 0 0px rgba(0,0,0,0)); }
-	50%{ filter: drop-shadow(0 0.8px 0px rgba(0,0,0,0.02)); }
-}
-@keyframes drift-bloom-2{
-	0%, 100%{ opacity: 0.92; }
-	50%{ opacity: 0.96; }
-}
-@keyframes drift-bloom-3{
-	0%, 100%{ opacity: 0.88; }
-	50%{ opacity: 0.94; }
-}
-@keyframes drift-bloom-4{
-	0%, 100%{ opacity: 0.90; }
-	50%{ opacity: 0.95; }
-}
-@keyframes drift-bloom-5{
-	0%, 100%{ opacity: 0.85; }
-	50%{ opacity: 0.93; }
-}
-@keyframes drift-bloom-6{
-	0%, 100%{ opacity: 0.82; }
-	50%{ opacity: 0.92; }
-}.parallax-mid-css{
+.parallax-mid-css{
 	position:fixed;inset:0;z-index:0;pointer-events:none;
 	background-image:
 		radial-gradient(circle at 12% 72%, rgba(246,209,221,0.35) 0 11%, transparent 16%),
