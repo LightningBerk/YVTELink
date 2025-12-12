@@ -1,0 +1,12 @@
+name = "link-analytics"
+main = "worker.js"
+compatibility_date = "2024-06-01"
+
+d1_databases = [
+  { binding = "DB", database_name = "link_analytics", database_id = "ba86b86b-edd1-4681-8738-fce6e8aa4b91" }
+]
+
+[vars]
+ALLOWED_ORIGIN = "https://yvette-delarue.com"
+
+# ADMIN_TOKEN is set via `wrangler secret put ADMIN_TOKEN`
