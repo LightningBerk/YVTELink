@@ -65,7 +65,7 @@
         navigator.sendBeacon(url, blob);
       } else {
         // Fallback to fetch with keepalive for older browsers
-        fetch(url, { method: 'POST', headers, body, keepalive: true, mode: 'cors' }).catch(()=>{});
+        fetch(url, { method: 'POST', headers, body, keepalive: true, mode: 'cors', credentials: 'omit' }).catch(()=>{});
       }
     } catch {}
   }

@@ -62,7 +62,8 @@ function corsHeaders(origin, allowedOrigin) {
     'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Max-Age': '86400',
-    'Referrer-Policy': 'strict-origin-when-cross-origin'
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Access-Control-Allow-Credentials': 'true'
   };
   // Allow both production origin and GitHub Pages for testing
   const allowedOrigins = (allowedOrigin || '').split(',').map(s => s.trim()).filter(Boolean);
