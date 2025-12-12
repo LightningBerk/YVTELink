@@ -116,15 +116,25 @@
   function renderChart(series){
     const ctx = els.chart.getContext('2d');
     ctx.clearRect(0, 0, els.chart.width, els.chart.height);
+    
+    if (!series || series.length === 0) {
+      ctx.fillStyle = '#6B3A8A';
+      ctx.font = '16px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('No data available yet', els.chart.width / 2, els.chart.height / 2);
+      return;
+    }
+
     const w = els.chart.width, h = els.chart.height;
-    const margin = 32;
+    const margin = 48;
     const innerW = w - margin * 2;
     const innerH = h - margin * 2;
     
     const pageviews = series.map(s => s.pageviews || 0);
     const clicks = series.map(s => s.clicks || 0);
-    const maxY = Math.max(1, ...pageviews, ...clicks);
-    const pointCount = series.length || 1;
+    const maxY = Math.max(1, Math.max(...pageviews), Math.max(...clicks));
+    const pointCount = Math.max(series.length, 1);
 
     function scaleX(i){ 
       if (pointCount === 1) return margin + innerW / 2;
@@ -135,7 +145,7 @@
     }
 
     // Background grid
-    ctx.strokeStyle = 'rgba(107, 58, 138, 0.05)';
+    ctx.strokeStyle = 'rgba(107, 58, 138, 0.08)';
     ctx.lineWidth = 1;
     for (let i = 0; i <= 4; i++) {
       const y = margin + (i / 4) * innerH;
@@ -146,8 +156,8 @@
     }
 
     // Axes
-    ctx.strokeStyle = 'rgba(107, 58, 138, 0.2)';
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(107, 58, 138, 0.3)';
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(margin, margin);
     ctx.lineTo(margin, h - margin);
@@ -162,12 +172,13 @@
     for (let i = 0; i <= 4; i++) {
       const y = margin + (i / 4) * innerH;
       const val = Math.round(maxY * (1 - i / 4));
-      ctx.fillText(val, margin - 8, y);
+      ctx.fillText(val, margin - 12, y);
     }
 
-    // X-axis labels (every other day if many)
+    // X-axis labels
     ctx.textAlign = 'center';
     ctx.fillStyle = '#6B3A8A';
+    ctx.font = '11px Inter, sans-serif';
     const labelStep = Math.max(1, Math.floor(series.length / 6));
     series.forEach((s, i) => {
       if (i % labelStep === 0 || i === series.length - 1) {
@@ -175,7 +186,7 @@
         const dateStr = s.day || '';
         const shortDate = dateStr.split('-').slice(1).join('/');
         ctx.save();
-        ctx.translate(x, h - margin + 16);
+        ctx.translate(x, h - margin + 14);
         ctx.rotate(-Math.PI / 8);
         ctx.textAlign = 'right';
         ctx.fillText(shortDate, 0, 0);
@@ -183,31 +194,77 @@
       }
     });
 
-    // Pageviews line (purple)
-    ctx.strokeStyle = '#6B3A8A';
-    ctx.lineWidth = 3;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.beginPath();
-    series.forEach((s, i) => {
-      const x = scaleX(i);
-      const y = scaleY(s.pageviews || 0);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.stroke();
+    // Bar chart background (for single point)
+    if (pointCount === 1) {
+      const x = scaleX(0);
+      const barWidth = 40;
 
-    // Clicks line (pink)
-    ctx.strokeStyle = '#F6D1DD';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    series.forEach((s, i) => {
-      const x = scaleX(i);
-      const y = scaleY(s.clicks || 0);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.stroke();
+      // Pageviews bar (purple)
+      const pv = pageviews[0] || 0;
+      const pvHeight = (pv / maxY) * innerH;
+      ctx.fillStyle = 'rgba(107, 58, 138, 0.7)';
+      ctx.fillRect(x - barWidth - 8, scaleY(pv), barWidth, pvHeight);
+
+      // Clicks bar (pink)
+      const cl = clicks[0] || 0;
+      const clHeight = (cl / maxY) * innerH;
+      ctx.fillStyle = 'rgba(246, 209, 221, 0.9)';
+      ctx.fillRect(x + 8, scaleY(cl), barWidth, clHeight);
+
+      // Value labels on bars
+      ctx.fillStyle = '#0f1720';
+      ctx.font = 'bold 13px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(String(pv), x - barWidth / 2 - 8, scaleY(pv) - 4);
+      ctx.fillText(String(cl), x + barWidth / 2 + 8, scaleY(cl) - 4);
+    } else {
+      // Line chart for multiple points
+      // Pageviews line (purple)
+      ctx.strokeStyle = '#6B3A8A';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      series.forEach((s, i) => {
+        const x = scaleX(i);
+        const y = scaleY(s.pageviews || 0);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Clicks line (pink)
+      ctx.strokeStyle = '#F6D1DD';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      series.forEach((s, i) => {
+        const x = scaleX(i);
+        const y = scaleY(s.clicks || 0);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Data point circles
+      ctx.fillStyle = '#6B3A8A';
+      series.forEach((s, i) => {
+        const x = scaleX(i);
+        const y = scaleY(s.pageviews || 0);
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.fillStyle = '#F6D1DD';
+      series.forEach((s, i) => {
+        const x = scaleX(i);
+        const y = scaleY(s.clicks || 0);
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
 
     // Legend
     ctx.font = 'bold 12px Inter, sans-serif';
@@ -215,12 +272,12 @@
     ctx.textBaseline = 'top';
     
     ctx.fillStyle = '#6B3A8A';
-    ctx.fillRect(w - 200, margin, 12, 12);
+    ctx.fillRect(w - 200, margin, 14, 14);
     ctx.fillStyle = '#0f1720';
     ctx.fillText('Pageviews', w - 180, margin);
 
     ctx.fillStyle = '#F6D1DD';
-    ctx.fillRect(w - 200, margin + 22, 12, 12);
+    ctx.fillRect(w - 200, margin + 22, 14, 14);
     ctx.fillStyle = '#0f1720';
     ctx.fillText('Clicks', w - 180, margin + 22);
   }
