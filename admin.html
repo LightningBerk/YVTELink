@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics Admin</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .admin-container{max-width:900px;margin:40px auto;padding:0 16px}
+    .admin-row{display:flex;gap:16px;align-items:center;margin-bottom:16px}
+    .admin-input{padding:8px 12px;border:1px solid #ccc;border-radius:8px;width:100%}
+    .admin-btn{padding:10px 14px;border:1px solid #6B3A8A;background:#F6D1DD;color:#0f1720;border-radius:8px;font-weight:600}
+    .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}
+    .card{background:#fff;border:1px solid rgba(107,58,138,0.12);border-radius:10px;box-shadow:0 8px 18px rgba(107,58,138,0.08);padding:12px;text-align:center}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{border-bottom:1px solid #eee;padding:8px;text-align:left}
+    canvas,svg{width:100%;height:180px;margin-top:12px}
+    @media(max-width:800px){.cards{grid-template-columns:repeat(2,1fr)}}
+  </style>
+  <script src="config.js" defer></script>
+  <script src="admin.js" defer></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{document.body.classList.add('admin')});</script>
+  <link rel="canonical" href="/admin.html" />
+  <meta name="robots" content="noindex" />
+  <meta http-equiv="Cache-Control" content="no-store" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+</head>
+<body>
+  <div class="admin-container">
+    <h1>Analytics Admin</h1>
+    <div class="admin-row">
+      <input id="token" class="admin-input" type="password" placeholder="Admin token" />
+      <select id="range" class="admin-input" style="max-width:220px">
+        <option value="7d">Last 7 days</option>
+        <option value="30d">Last 30 days</option>
+        <option value="custom">Custom</option>
+      </select>
+      <input id="start" class="admin-input" type="date" style="max-width:180px;display:none" />
+      <input id="end" class="admin-input" type="date" style="max-width:180px;display:none" />
+      <button id="load" class="admin-btn">Load</button>
+    </div>
+
+    <div class="cards">
+      <div class="card"><div>Pageviews</div><h2 id="kpi-pageviews">0</h2></div>
+      <div class="card"><div>Clicks</div><h2 id="kpi-clicks">0</h2></div>
+      <div class="card"><div>Uniques</div><h2 id="kpi-uniques">0</h2></div>
+      <div class="card"><div>CTR</div><h2 id="kpi-ctr">0%</h2></div>
+    </div>
+
+    <h3>Timeseries</h3>
+    <canvas id="chart" width="900" height="200"></canvas>
+
+    <h3>Top Links</h3>
+    <table id="links"><thead><tr><th>Link</th><th>Clicks</th><th>Uniques</th></tr></thead><tbody></tbody></table>
+
+    <h3>Top Referrers</h3>
+    <table id="referrers"><thead><tr><th>Referrer</th><th>Pageviews</th></tr></thead><tbody></tbody></table>
+  </div>
+</body>
+</html>
