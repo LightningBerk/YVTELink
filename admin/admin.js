@@ -1,0 +1,379 @@
+(() => {
+  const cfg = window.ANALYTICS_CONFIG || {};
+  const API_BASE = (cfg.ANALYTICS_API_BASE || '').replace(/\/$/, '');
+
+  const els = {
+    token: document.getElementById('token'),
+    range: document.getElementById('range'),
+    start: document.getElementById('start'),
+    end: document.getElementById('end'),
+    load: document.getElementById('load'),
+    export: document.getElementById('export'),
+    alert: document.getElementById('alert'),
+    statusBadge: document.getElementById('status-badge'),
+    lastUpdated: document.getElementById('last-updated'),
+    kpiPageviews: document.getElementById('kpi-pageviews'),
+    kpiClicks: document.getElementById('kpi-clicks'),
+    kpiUniques: document.getElementById('kpi-uniques'),
+    kpiCtr: document.getElementById('kpi-ctr'),
+    chart: document.getElementById('chart'),
+    linksTbody: document.querySelector('#links tbody'),
+    refTbody: document.querySelector('#referrers tbody'),
+    dateStartGroup: document.getElementById('date-start-group'),
+    dateEndGroup: document.getElementById('date-end-group')
+  };
+
+  let lastData = null;
+
+  function saveToken(){ 
+    sessionStorage.setItem('admin_token', els.token.value || ''); 
+  }
+
+  function loadToken(){ 
+    els.token.value = sessionStorage.getItem('admin_token') || ''; 
+  }
+
+  function showAlert(msg, type = 'error') {
+    els.alert.innerHTML = `<div class="alert ${type}">${msg}</div>`;
+    els.alert.style.display = 'block';
+    if (type === 'success') {
+      setTimeout(() => { els.alert.style.display = 'none'; }, 4000);
+    }
+  }
+
+  function updateStatus(authenticated) {
+    if (authenticated) {
+      els.statusBadge.textContent = '✓ Authenticated';
+      els.statusBadge.className = 'status-badge authenticated';
+      els.export.style.display = 'inline-block';
+    } else {
+      els.statusBadge.textContent = '';
+      els.statusBadge.className = 'status-badge';
+      els.export.style.display = 'none';
+    }
+  }
+
+  async function apiGet(path, params = {}){
+    const token = sessionStorage.getItem('admin_token') || '';
+    const url = new URL(API_BASE + path);
+    Object.entries(params).forEach(([k,v])=>{ if(v!=null) url.searchParams.set(k, v); });
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${token}` },
+      mode: 'cors'
+    });
+    if (!res.ok) {
+      updateStatus(false);
+      throw new Error('API error ' + res.status);
+    }
+    updateStatus(true);
+    return res.json();
+  }
+
+  function formatNumber(n) {
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+    return String(n);
+  }
+
+  function renderKPIs(totals){
+    els.kpiPageviews.textContent = formatNumber(totals.pageviews || 0);
+    els.kpiClicks.textContent = formatNumber(totals.clicks || 0);
+    els.kpiUniques.textContent = formatNumber(totals.uniques || 0);
+    const ctr = (totals.ctr || 0) * 100;
+    els.kpiCtr.textContent = ctr.toFixed(1) + '%';
+  }
+
+  function renderTable(tbody, rows, cols){
+    tbody.innerHTML = '';
+    if (!rows || rows.length === 0) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = cols.length;
+      td.style.textAlign = 'center';
+      td.style.padding = '40px 20px';
+      td.style.color = '#6B3A8A';
+      td.textContent = 'No data available';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+    rows.forEach(r => {
+      const tr = document.createElement('tr');
+      cols.forEach((c, idx) => {
+        const td = document.createElement('td');
+        let val = r[c] == null ? '' : String(r[c]);
+        if ((c === 'clicks' || c === 'uniques' || c === 'pageviews') && r[c] != null) {
+          val = formatNumber(r[c]);
+        }
+        if (idx > 0) td.style.textAlign = 'right';
+        td.textContent = val;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderChart(series){
+    const ctx = els.chart.getContext('2d');
+    ctx.clearRect(0, 0, els.chart.width, els.chart.height);
+    
+    if (!series || series.length === 0) {
+      ctx.fillStyle = '#6B3A8A';
+      ctx.font = '16px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('No data available yet', els.chart.width / 2, els.chart.height / 2);
+      return;
+    }
+
+    const w = els.chart.width, h = els.chart.height;
+    const margin = 48;
+    const innerW = w - margin * 2;
+    const innerH = h - margin * 2;
+    
+    const pageviews = series.map(s => s.pageviews || 0);
+    const clicks = series.map(s => s.clicks || 0);
+    const maxY = Math.max(1, Math.max(...pageviews), Math.max(...clicks));
+    const pointCount = Math.max(series.length, 1);
+
+    function scaleX(i){ 
+      if (pointCount === 1) return margin + innerW / 2;
+      return margin + (i / (pointCount - 1)) * innerW; 
+    }
+    function scaleY(v){ 
+      return margin + innerH - (v / maxY) * innerH; 
+    }
+
+    // Background grid
+    ctx.strokeStyle = 'rgba(107, 58, 138, 0.08)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const y = margin + (i / 4) * innerH;
+      ctx.beginPath();
+      ctx.moveTo(margin, y);
+      ctx.lineTo(w - margin, y);
+      ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = 'rgba(107, 58, 138, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(margin, margin);
+    ctx.lineTo(margin, h - margin);
+    ctx.lineTo(w - margin, h - margin);
+    ctx.stroke();
+
+    // Y-axis labels
+    ctx.fillStyle = '#6B3A8A';
+    ctx.font = 'bold 11px Inter, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i <= 4; i++) {
+      const y = margin + (i / 4) * innerH;
+      const val = Math.round(maxY * (1 - i / 4));
+      ctx.fillText(val, margin - 12, y);
+    }
+
+    // X-axis labels
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#6B3A8A';
+    ctx.font = '11px Inter, sans-serif';
+    const labelStep = Math.max(1, Math.floor(series.length / 6));
+    series.forEach((s, i) => {
+      if (i % labelStep === 0 || i === series.length - 1) {
+        const x = scaleX(i);
+        const dateStr = s.day || '';
+        const shortDate = dateStr.split('-').slice(1).join('/');
+        ctx.save();
+        ctx.translate(x, h - margin + 14);
+        ctx.rotate(-Math.PI / 8);
+        ctx.textAlign = 'right';
+        ctx.fillText(shortDate, 0, 0);
+        ctx.restore();
+      }
+    });
+
+    // Bar chart background (for single point)
+    if (pointCount === 1) {
+      const x = scaleX(0);
+      const barWidth = 40;
+
+      // Pageviews bar (purple)
+      const pv = pageviews[0] || 0;
+      const pvHeight = (pv / maxY) * innerH;
+      ctx.fillStyle = 'rgba(107, 58, 138, 0.7)';
+      ctx.fillRect(x - barWidth - 8, scaleY(pv), barWidth, pvHeight);
+
+      // Clicks bar (pink)
+      const cl = clicks[0] || 0;
+      const clHeight = (cl / maxY) * innerH;
+      ctx.fillStyle = 'rgba(246, 209, 221, 0.9)';
+      ctx.fillRect(x + 8, scaleY(cl), barWidth, clHeight);
+
+      // Value labels on bars
+      ctx.fillStyle = '#0f1720';
+      ctx.font = 'bold 13px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(String(pv), x - barWidth / 2 - 8, scaleY(pv) - 4);
+      ctx.fillText(String(cl), x + barWidth / 2 + 8, scaleY(cl) - 4);
+    } else {
+      // Line chart for multiple points
+      // Pageviews line (purple)
+      ctx.strokeStyle = '#6B3A8A';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      series.forEach((s, i) => {
+        const x = scaleX(i);
+        const y = scaleY(s.pageviews || 0);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Clicks line (pink)
+      ctx.strokeStyle = '#F6D1DD';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      series.forEach((s, i) => {
+        const x = scaleX(i);
+        const y = scaleY(s.clicks || 0);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Data point circles
+      ctx.fillStyle = '#6B3A8A';
+      series.forEach((s, i) => {
+        const x = scaleX(i);
+        const y = scaleY(s.pageviews || 0);
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.fillStyle = '#F6D1DD';
+      series.forEach((s, i) => {
+        const x = scaleX(i);
+        const y = scaleY(s.clicks || 0);
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // Legend
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    
+    ctx.fillStyle = '#6B3A8A';
+    ctx.fillRect(w - 200, margin, 14, 14);
+    ctx.fillStyle = '#0f1720';
+    ctx.fillText('Pageviews', w - 180, margin);
+
+    ctx.fillStyle = '#F6D1DD';
+    ctx.fillRect(w - 200, margin + 22, 14, 14);
+    ctx.fillStyle = '#0f1720';
+    ctx.fillText('Clicks', w - 180, margin + 22);
+  }
+
+  async function loadData(){
+    els.load.classList.add('loading');
+    try {
+      saveToken();
+      const range = els.range.value;
+      const params = { range };
+      if (range === 'custom') {
+        params.start = els.start.value;
+        params.end = els.end.value;
+        if (!params.start || !params.end) {
+          showAlert('Please select both start and end dates', 'error');
+          return;
+        }
+      }
+
+      const summary = await apiGet('/summary', params);
+      lastData = summary;
+
+      renderKPIs(summary.totals || {});
+      renderTable(els.linksTbody, summary.top_links || [], ['label', 'clicks', 'uniques']);
+      renderTable(els.refTbody, summary.top_referrers || [], ['referrer', 'pageviews']);
+      renderChart(summary.timeseries || []);
+
+      els.lastUpdated.textContent = new Date().toLocaleTimeString();
+      showAlert('✓ Data loaded successfully', 'success');
+    } catch (err) {
+      showAlert('❌ Error: ' + err.message, 'error');
+      updateStatus(false);
+    } finally {
+      els.load.classList.remove('loading');
+    }
+  }
+
+  function onRangeChange(){
+    const custom = els.range.value === 'custom';
+    els.dateStartGroup.style.display = custom ? 'flex' : 'none';
+    els.dateEndGroup.style.display = custom ? 'flex' : 'none';
+  }
+
+  function exportCSV() {
+    if (!lastData) {
+      showAlert('Load data first before exporting', 'error');
+      return;
+    }
+
+    const lines = [];
+    lines.push('ANALYTICS EXPORT');
+    lines.push(`Exported: ${new Date().toISOString()}`);
+    lines.push('');
+
+    lines.push('KPI SUMMARY');
+    const totals = lastData.totals || {};
+    lines.push(`Pageviews,Clicks,Uniques,CTR`);
+    lines.push(`${totals.pageviews || 0},${totals.clicks || 0},${totals.uniques || 0},${((totals.ctr || 0) * 100).toFixed(1)}%`);
+    lines.push('');
+
+    lines.push('TOP LINKS');
+    lines.push(`Link,Clicks,Uniques`);
+    (lastData.top_links || []).forEach(row => {
+      lines.push(`"${row.label || row.link_id || ''}",${row.clicks || 0},${row.uniques || 0}`);
+    });
+    lines.push('');
+
+    lines.push('TOP REFERRERS');
+    lines.push(`Referrer,Pageviews`);
+    (lastData.top_referrers || []).forEach(row => {
+      lines.push(`"${row.referrer || 'Direct'}",${row.pageviews || 0}`);
+    });
+    lines.push('');
+
+    lines.push('TIMESERIES');
+    lines.push(`Date,Pageviews,Clicks`);
+    (lastData.timeseries || []).forEach(row => {
+      lines.push(`${row.day || ''},${row.pageviews || 0},${row.clicks || 0}`);
+    });
+
+    const csv = lines.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `analytics-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadToken();
+    onRangeChange();
+  });
+
+  els.range.addEventListener('change', onRangeChange);
+  els.load.addEventListener('click', loadData);
+  els.export.addEventListener('click', exportCSV);
+})();

@@ -16,12 +16,12 @@ Hosted on GitHub Pages with custom domain: [yvette-delarue.com](https://yvette-d
 
 ### Serverless Analytics (Cloudflare Workers + D1)
 
-Files:
-- `worker/worker.js` — Cloudflare Worker API
-- `worker/migrations/0001_init.sql` — D1 schema
-- `worker/wrangler.toml` — Worker config/bindings
-- `config.js`, `analytics.js` — Frontend hooks
-- `admin.html`, `admin.js` — Minimal admin dashboard
+ Files:
+ - `worker/worker.js` — Cloudflare Worker API
+ - `worker/migrations/0001_init.sql` — D1 schema
+ - `worker/wrangler.toml` — Worker config/bindings
+ - `config.js`, `analytics.js` — Frontend hooks
+ - `admin/admin.html`, `admin/admin.js` — Admin dashboard (moved into `admin/`)
 
 Setup steps:
 1. Install Wrangler and login:
@@ -43,7 +43,7 @@ Setup steps:
 6. Set `ANALYTICS_API_BASE` in `config.js` to your Worker URL.
 
 Admin Usage:
-- Open `/admin.html`, enter your token, select range, and load.
+- Open `/admin/admin.html`, enter your token, select range, and load.
 
 Event Coverage:
 - `page_view` auto-sent on `DOMContentLoaded`
