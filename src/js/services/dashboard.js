@@ -65,11 +65,45 @@
   // DASHBOARD INITIALIZATION
   // =========================================================================
   function initDashboard() {
-    // Show user info and initialize UI
-    const userInfo = document.getElementById('user-info');
-    if (userInfo) userInfo.style.display = 'flex';
-    
+    // Set up account menu and dropdown
+    const accountToggle = document.getElementById('account-toggle');
+    const accountDropdown = document.getElementById('account-dropdown');
     const logoutBtn = document.getElementById('logout-btn');
+    
+    // Update login time
+    const loginTime = document.getElementById('login-time');
+    if (loginTime) {
+      loginTime.textContent = 'Logged in ' + new Date().toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    }
+    
+    // Toggle dropdown menu
+    if (accountToggle) {
+      accountToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = accountDropdown.style.display !== 'none';
+        accountDropdown.style.display = isOpen ? 'none' : 'block';
+        accountToggle.classList.toggle('open');
+      });
+    }
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => {
+      if (accountDropdown) {
+        accountDropdown.style.display = 'none';
+        if (accountToggle) accountToggle.classList.remove('open');
+      }
+    });
+    
+    // Close dropdown when clicking inside it
+    if (accountDropdown) {
+      accountDropdown.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    }
+    
     if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
 
     // Continue with normal initialization
@@ -100,7 +134,6 @@
     load: document.getElementById('load'),
     export: document.getElementById('export'),
     alert: document.getElementById('alert'),
-    statusBadge: document.getElementById('status-badge'),
     lastUpdated: document.getElementById('last-updated'),
     kpiPageviews: document.getElementById('kpi-pageviews'),
     kpiClicks: document.getElementById('kpi-clicks'),

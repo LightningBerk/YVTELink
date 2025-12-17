@@ -24,15 +24,45 @@
 <body class="admin">
   <div class="admin-header">
     <div class="admin-header-content">
-      <div>
-        <h1>📊 Analytics Dashboard</h1>
+      <div class="admin-header-brand">
+        <h1 class="admin-header-title">📊 Analytics Dashboard</h1>
         <p class="admin-header-subtitle">Real-time insights and performance metrics</p>
       </div>
-      <div style="display: flex; align-items: center; gap: 16px;">
-        <span id="status-badge" class="status-badge"></span>
-        <div id="user-info" style="display: none; text-align: right;">
-          <div style="font-size: 12px; color: var(--color-text-muted);">Authenticated</div>
-          <button id="logout-btn" class="admin-btn secondary" style="margin-top: 4px; font-size: 12px; padding: 6px 12px;">Logout</button>
+      
+      <div class="admin-header-account">
+        <div class="auth-status">
+          <div class="status-indicator">
+            <span class="status-dot"></span>
+            <span class="status-text">Connected</span>
+          </div>
+        </div>
+        
+        <div class="account-menu">
+          <button class="account-btn" id="account-toggle" aria-label="Account menu">
+            <div class="account-avatar">👤</div>
+            <div class="account-details">
+              <div class="account-label">Admin Account</div>
+              <div class="account-status" id="account-time">Just now</div>
+            </div>
+            <svg class="chevron-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M6 6L8 8L10 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          
+          <div class="account-dropdown" id="account-dropdown" style="display: none;">
+            <div class="dropdown-header">
+              <div class="dropdown-avatar">👤</div>
+              <div>
+                <div class="dropdown-title">Admin User</div>
+                <div class="dropdown-subtitle" id="login-time">Logged in</div>
+              </div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item" id="logout-btn">
+              <span class="item-icon">🚪</span>
+              <span>Sign Out</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
