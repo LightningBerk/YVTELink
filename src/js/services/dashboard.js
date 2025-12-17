@@ -126,7 +126,12 @@
   let markerLayer = null;
 
   function showAlert(msg, type = 'error') {
-    els.alert.innerHTML = `<div class="alert ${type}">${msg}</div>`;
+    // SECURITY: Use textContent to prevent XSS
+    els.alert.innerHTML = ''; // Clear first
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert ${type}`;
+    alertDiv.textContent = msg;
+    els.alert.appendChild(alertDiv);
     els.alert.style.display = 'block';
     if (type === 'success') {
       setTimeout(() => { els.alert.style.display = 'none'; }, 4000);
@@ -537,16 +542,35 @@
       const device = item.device || 'Unknown';
       const browser = item.browser || '';
       
-      div.innerHTML = `
-        <div style="flex:1;">
-          <div><strong>${icon} ${action}</strong> <span>${target}</span></div>
-          <div style="color:var(--color-text-muted);font-size:var(--text-xs);margin-top:4px;">
-            📍 ${location} • 📱 ${device} ${browser ? `• ${browser}` : ''}
-          </div>
-        </div>
-        <div style="color:var(--color-text-muted);font-size:var(--text-xs);white-space:nowrap;">${time}</div>
-      `;
+      // SECURITY: Use textContent to prevent XSS - do not use innerHTML with user data
+      const mainDiv = document.createElement('div');
+      mainDiv.style.flex = '1';
       
+      const actionDiv = document.createElement('div');
+      const actionStrong = document.createElement('strong');
+      actionStrong.textContent = `${icon} ${action}`;
+      const targetSpan = document.createElement('span');
+      targetSpan.textContent = ` ${target}`;
+      actionDiv.appendChild(actionStrong);
+      actionDiv.appendChild(targetSpan);
+      
+      const detailsDiv = document.createElement('div');
+      detailsDiv.style.color = 'var(--color-text-muted)';
+      detailsDiv.style.fontSize = 'var(--text-xs)';
+      detailsDiv.style.marginTop = '4px';
+      detailsDiv.textContent = `📍 ${location} • 📱 ${device}${browser ? ` • ${browser}` : ''}`;
+      
+      mainDiv.appendChild(actionDiv);
+      mainDiv.appendChild(detailsDiv);
+      
+      const timeDiv = document.createElement('div');
+      timeDiv.style.color = 'var(--color-text-muted)';
+      timeDiv.style.fontSize = 'var(--text-xs)';
+      timeDiv.style.whiteSpace = 'nowrap';
+      timeDiv.textContent = time;
+      
+      div.appendChild(mainDiv);
+      div.appendChild(timeDiv);
       els.activityFeed.appendChild(div);
     });
   }

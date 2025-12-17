@@ -197,6 +197,31 @@ For seamless migration, redirect pages are maintained at legacy URLs:
 
 This ensures existing bookmarks and links continue to work.
 
+## 🔒 Security
+
+YVTELink implements comprehensive security measures to protect analytics data and prevent common web attacks:
+
+### Security Features
+- ✅ **XSS Protection** — Safe DOM manipulation, Content Security Policy
+- ✅ **CSRF Protection** — Origin validation on state-changing endpoints
+- ✅ **SQL Injection Protection** — Parameterized queries
+- ✅ **Rate Limiting** — 5 attempts/min on auth, 15 events/15s on tracking
+- ✅ **Brute Force Protection** — Authentication rate limiting
+- ✅ **Security Headers** — CSP, HSTS, X-Frame-Options, X-Content-Type-Options
+- ✅ **Input Validation** — UUID validation, string length limits, sanitization
+- ✅ **Supply Chain Security** — Subresource Integrity (SRI) on third-party scripts
+- ✅ **No Hardcoded Secrets** — Environment variables for credentials
+- ✅ **Privacy-Conscious** — No IP storage, minimal PII, bot filtering
+
+### Security Documentation
+- **[SECURITY.md](SECURITY.md)** — Vulnerability reporting and security policy
+- **[SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md)** — Complete security audit results
+- **[Authentication Guide](docs/auth/AUTH_SUMMARY.md)** — How authentication works
+
+**Security Posture**: ✅ Production-ready and hardened
+
+Report security vulnerabilities via the [Security tab](https://github.com/LightningBerk/YVTELink/security) or see [SECURITY.md](SECURITY.md).
+
 ## 🔧 Technology Stack
 
 ### Frontend

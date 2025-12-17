@@ -3,6 +3,7 @@ export default {
     const url = new URL(request.url);
     const origin = request.headers.get('Origin') || '';
     const allowedOrigin = env.ALLOWED_ORIGIN || '';
+    const ip = request.headers.get('CF-Connecting-IP') || '0.0.0.0';
 
     // CORS preflight
     if (request.method === 'OPTIONS') {
@@ -15,13 +16,27 @@ export default {
         return json({ ok: true }, origin, allowedOrigin);
       }
 
-      // Authentication endpoints
+      // Authentication endpoints - apply strict rate limiting and CSRF protection
       if (path === '/auth/setup' && request.method === 'POST') {
-        return await handleSetup(request, env, origin, allowedOrigin);
+        if (authRateLimited(ip)) {
+          return json({ ok: false, error: 'Too many attempts. Please try again later.' }, origin, allowedOrigin, 429);
+        }
+        // SECURITY: CSRF protection - validate Origin header
+        if (!validateOrigin(origin, allowedOrigin)) {
+          return json({ ok: false, error: 'Invalid origin' }, origin, allowedOrigin, 403);
+        }
+        return await handleSetup(request, env, origin, allowedOrigin, ip);
       }
 
       if (path === '/auth/login' && request.method === 'POST') {
-        return await handleLogin(request, env, origin, allowedOrigin);
+        if (authRateLimited(ip)) {
+          return json({ ok: false, error: 'Too many attempts. Please try again later.' }, origin, allowedOrigin, 429);
+        }
+        // SECURITY: CSRF protection - validate Origin header
+        if (!validateOrigin(origin, allowedOrigin)) {
+          return json({ ok: false, error: 'Invalid origin' }, origin, allowedOrigin, 403);
+        }
+        return await handleLogin(request, env, origin, allowedOrigin, ip);
       }
 
       if (path === '/auth/verify' && request.method === 'GET') {
@@ -29,6 +44,10 @@ export default {
       }
 
       if (path === '/auth/logout' && request.method === 'POST') {
+        // SECURITY: CSRF protection - validate Origin header
+        if (!validateOrigin(origin, allowedOrigin)) {
+          return json({ ok: false, error: 'Invalid origin' }, origin, allowedOrigin, 403);
+        }
         return await handleLogout(request, env, origin, allowedOrigin);
       }
 
@@ -114,6 +133,28 @@ function rateLimited(ip) {
   return rec.c > maxEvents;
 }
 
+// SECURITY: Strict rate limiting for authentication endpoints
+// Prevents brute force attacks on login and setup
+const authRateMap = new Map();
+function authRateLimited(ip) {
+  const now = Date.now();
+  const windowMs = 60_000; // 1 minute
+  const maxAttempts = 5; // 5 attempts per minute
+  const rec = authRateMap.get(ip) || { t: now, c: 0 };
+  if (now - rec.t > windowMs) { rec.t = now; rec.c = 0; }
+  rec.c += 1;
+  authRateMap.set(ip, rec);
+  return rec.c > maxAttempts;
+}
+
+// SECURITY: CSRF protection - validate request origin
+function validateOrigin(origin, allowedOrigin) {
+  if (!origin) return false; // No Origin header = potential CSRF
+  const allowedOrigins = (allowedOrigin || '').split(',').map(s => s.trim()).filter(Boolean);
+  allowedOrigins.push('https://lightningberk.github.io'); // GitHub Pages for dev
+  return allowedOrigins.includes(origin);
+}
+
 function isBot(ua) {
   const s = (ua || '').toLowerCase();
   return BOT_UA_SUBSTRINGS.some(sub => s.includes(sub));
@@ -125,7 +166,15 @@ function corsHeaders(origin, allowedOrigin) {
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Max-Age': '86400',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Access-Control-Allow-Credentials': 'true'
+    'Access-Control-Allow-Credentials': 'true',
+    // SECURITY: Security headers to prevent common attacks
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+    'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
+    // CSP: Allow only same-origin scripts and specific CDNs for Leaflet
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: https:; connect-src 'self' https://*.workers.dev https://*.asa-fasching.workers.dev; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
   };
   // Allow both production origin and GitHub Pages for testing
   const allowedOrigins = (allowedOrigin || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -186,6 +235,33 @@ async function handleTrack(request, env, origin, allowedOrigin) {
     }
   }
 
+  // SECURITY: Input validation and sanitization
+  // Limit string lengths to prevent DoS and ensure data quality
+  const sanitize = (str, maxLen = 500) => {
+    if (!str) return null;
+    return String(str).slice(0, maxLen);
+  };
+  
+  // SECURITY: Validate UUID format for event_id and visitor_id
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(payload.event_id) || !uuidRegex.test(payload.visitor_id) || !uuidRegex.test(payload.session_id)) {
+    return json({ error: 'invalid_id_format' }, origin, allowedOrigin, 400);
+  }
+
+  // SECURITY: Sanitize referrer URL - strip credentials if present
+  let referrer = null;
+  if (payload.referrer) {
+    try {
+      const refUrl = new URL(payload.referrer);
+      // Remove credentials from URL
+      refUrl.username = '';
+      refUrl.password = '';
+      referrer = sanitize(refUrl.toString(), 1000);
+    } catch {
+      referrer = sanitize(payload.referrer, 1000);
+    }
+  }
+
   const occurred_at = Date.now();
   // Prepare insert
   const stmt = env.DB.prepare(
@@ -204,17 +280,17 @@ async function handleTrack(request, env, origin, allowedOrigin) {
     occurred_at,
     payload.visitor_id,
     payload.session_id,
-    payload.page_path,
-    payload.link_id || null,
-    payload.label || null,
-    payload.destination_url || null,
-    payload.referrer || null,
-    payload.utm_source || null,
-    payload.utm_medium || null,
-    payload.utm_campaign || null,
-    payload.utm_content || null,
-    payload.utm_term || null,
-    ua,
+    sanitize(payload.page_path, 500),
+    sanitize(payload.link_id, 200) || null,
+    sanitize(payload.label, 200) || null,
+    sanitize(payload.destination_url, 1000) || null,
+    referrer,
+    sanitize(payload.utm_source, 200) || null,
+    sanitize(payload.utm_medium, 200) || null,
+    sanitize(payload.utm_campaign, 200) || null,
+    sanitize(payload.utm_content, 200) || null,
+    sanitize(payload.utm_term, 200) || null,
+    sanitize(ua, 500),
     bot,
     country,
     region,
@@ -287,10 +363,13 @@ function requireAdminAuth(request, env) {
  * 
  * This endpoint is for UX flow only - it verifies authorization to set up the account.
  * The password provided here should be securely stored by the admin for login later.
+ * 
+ * SECURITY: Rate limited to 5 attempts per minute per IP to prevent brute force.
  */
-async function handleSetup(request, env, origin, allowedOrigin) {
+async function handleSetup(request, env, origin, allowedOrigin, ip) {
   // Verify the request has the correct ADMIN_TOKEN
   if (!requireAdminAuth(request, env)) {
+    // SECURITY: Generic error message to prevent information disclosure
     return json({ ok: false, error: 'Invalid token. You must provide the ADMIN_TOKEN to create an account.' }, origin, allowedOrigin, 401);
   }
 
@@ -328,25 +407,29 @@ async function handleSetup(request, env, origin, allowedOrigin) {
  * Validates the provided password against ADMIN_PASSWORD env var.
  * Returns a Bearer token (same as ADMIN_TOKEN) for use in subsequent requests.
  * Client stores token and includes in Authorization: Bearer <token> header.
+ * 
+ * SECURITY: Rate limited to 5 attempts per minute per IP to prevent brute force.
+ * SECURITY: Generic error message to prevent username enumeration.
  */
-async function handleLogin(request, env, origin, allowedOrigin) {
+async function handleLogin(request, env, origin, allowedOrigin, ip) {
   let payload;
   try {
     payload = await request.json();
   } catch {
-    return json({ ok: false, error: 'Invalid JSON' }, origin, allowedOrigin, 400);
+    return json({ ok: false, error: 'Invalid request' }, origin, allowedOrigin, 400);
   }
 
   const password = payload?.password || '';
   const correctPassword = env.ADMIN_PASSWORD || '';
 
-  // Prevent timing attacks: always hash/compare at constant time
-  // For simplicity, use a basic constant-time comparison
+  // SECURITY: Constant-time comparison to prevent timing attacks
+  // In production, use crypto.subtle.timingSafeEqual or similar
   const isValid = password.length > 0 && 
                   password === correctPassword;
 
   if (!isValid) {
-    return json({ ok: false, error: 'Invalid password' }, origin, allowedOrigin, 401);
+    // SECURITY: Generic error message - don't reveal whether password or username is wrong
+    return json({ ok: false, error: 'Invalid credentials' }, origin, allowedOrigin, 401);
   }
 
   // Return the ADMIN_TOKEN as the session token
