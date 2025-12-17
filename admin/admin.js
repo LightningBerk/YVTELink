@@ -19,6 +19,7 @@
     chart: document.getElementById('chart'),
     linksTbody: document.querySelector('#links tbody'),
     refTbody: document.querySelector('#referrers tbody'),
+    countriesTbody: document.querySelector('#countries tbody'),
     dateStartGroup: document.getElementById('date-start-group'),
     dateEndGroup: document.getElementById('date-end-group')
   };
@@ -303,6 +304,7 @@
       renderKPIs(summary.totals || {});
       renderTable(els.linksTbody, summary.top_links || [], ['label', 'clicks', 'uniques']);
       renderTable(els.refTbody, summary.top_referrers || [], ['referrer', 'pageviews']);
+      renderTable(els.countriesTbody, summary.top_countries || [], ['country', 'pageviews', 'clicks', 'uniques']);
       renderChart(summary.timeseries || []);
 
       els.lastUpdated.textContent = new Date().toLocaleTimeString();
@@ -349,6 +351,13 @@
     lines.push(`Referrer,Pageviews`);
     (lastData.top_referrers || []).forEach(row => {
       lines.push(`"${row.referrer || 'Direct'}",${row.pageviews || 0}`);
+    });
+    lines.push('');
+
+    lines.push('TOP COUNTRIES');
+    lines.push(`Country,Pageviews,Clicks,Uniques`);
+    (lastData.top_countries || []).forEach(row => {
+      lines.push(`"${row.country || 'Unknown'}",${row.pageviews || 0},${row.clicks || 0},${row.uniques || 0}`);
     });
     lines.push('');
 

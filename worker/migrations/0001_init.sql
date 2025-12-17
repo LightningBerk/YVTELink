@@ -16,9 +16,16 @@ CREATE TABLE IF NOT EXISTS events (
   utm_content TEXT NULL,
   utm_term TEXT NULL,
   user_agent TEXT NOT NULL,
-  is_bot INTEGER NOT NULL DEFAULT 0
+  is_bot INTEGER NOT NULL DEFAULT 0,
+  country TEXT NULL,
+  region TEXT NULL,
+  city TEXT NULL,
+  timezone TEXT NULL,
+  latitude REAL NULL,
+  longitude REAL NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_events_name_time ON events(event_name, occurred_at);
 CREATE INDEX IF NOT EXISTS idx_events_link_time ON events(link_id, occurred_at);
 CREATE INDEX IF NOT EXISTS idx_events_visitor_time ON events(visitor_id, occurred_at);
+CREATE INDEX IF NOT EXISTS idx_events_country_time ON events(country, occurred_at);

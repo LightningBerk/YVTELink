@@ -99,6 +99,15 @@ async function handleTrack(request, env, origin, allowedOrigin) {
   const ua = request.headers.get('User-Agent') || '';
   const bot = isBot(ua) ? 1 : 0;
 
+  // Extract geolocation from Cloudflare request object
+  const geo = request.cf || {};
+  const country = geo.country || null;
+  const region = geo.region || null;
+  const city = geo.city || null;
+  const timezone = geo.timezone || null;
+  const latitude = geo.latitude ? parseFloat(geo.latitude) : null;
+  const longitude = geo.longitude ? parseFloat(geo.longitude) : null;
+
   // Schema validation
   const allowedEvents = new Set(['page_view', 'link_click']);
   if (!allowedEvents.has(payload?.event_name)) {
@@ -119,8 +128,8 @@ async function handleTrack(request, env, origin, allowedOrigin) {
       event_id, event_name, occurred_at, visitor_id, session_id, page_path,
       link_id, label, destination_url, referrer,
       utm_source, utm_medium, utm_campaign, utm_content, utm_term,
-      user_agent, is_bot
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      user_agent, is_bot, country, region, city, timezone, latitude, longitude
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
 
   const values = [
@@ -140,7 +149,13 @@ async function handleTrack(request, env, origin, allowedOrigin) {
     payload.utm_content || null,
     payload.utm_term || null,
     ua,
-    bot
+    bot,
+    country,
+    region,
+    city,
+    timezone,
+    latitude,
+    longitude
   ];
 
   try {
@@ -221,6 +236,18 @@ async function handleSummary(request, env, origin, allowedOrigin) {
     LIMIT 10;
   `;
 
+  const countriesSql = `
+    SELECT country,
+           SUM(CASE WHEN event_name='page_view' AND is_bot=0 THEN 1 ELSE 0 END) AS pageviews,
+           SUM(CASE WHEN event_name='link_click' AND is_bot=0 THEN 1 ELSE 0 END) AS clicks,
+           COUNT(DISTINCT CASE WHEN is_bot=0 THEN visitor_id END) AS uniques
+    FROM events
+    WHERE occurred_at BETWEEN ? AND ? AND country IS NOT NULL
+    GROUP BY country
+    ORDER BY pageviews DESC
+    LIMIT 15;
+  `;
+
   const timeseriesSql = `
     SELECT strftime('%Y-%m-%d', datetime(occurred_at/1000, 'unixepoch')) AS day,
            SUM(CASE WHEN event_name='page_view' AND is_bot=0 THEN 1 ELSE 0 END) AS pageviews,
@@ -234,6 +261,7 @@ async function handleSummary(request, env, origin, allowedOrigin) {
   const totals = await env.DB.prepare(totalsSql).bind(startMs, endMs).first();
   const topLinks = await env.DB.prepare(topLinksSql).bind(startMs, endMs).all();
   const referrers = await env.DB.prepare(referrersSql).bind(startMs, endMs).all();
+  const countries = await env.DB.prepare(countriesSql).bind(startMs, endMs).all();
   const series = await env.DB.prepare(timeseriesSql).bind(startMs, endMs).all();
 
   const pageviews = totals?.pageviews || 0;
@@ -245,6 +273,7 @@ async function handleSummary(request, env, origin, allowedOrigin) {
     totals: { pageviews, clicks, uniques, ctr },
     top_links: topLinks?.results || [],
     top_referrers: referrers?.results || [],
+    top_countries: countries?.results || [],
     timeseries: series?.results || []
   }, origin, allowedOrigin);
 }
