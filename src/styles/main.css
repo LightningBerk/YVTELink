@@ -85,7 +85,7 @@ a{color:inherit;text-decoration:none}
 	.link-gallery{padding:0}
 	.link-gallery-inner{gap:clamp(var(--space-2),4vw,var(--space-3));align-items:stretch}
 	.link-card{min-height:64vh;border-radius:9px;margin:0 clamp(16px,5vw,22px);width:calc(100% - 2*clamp(16px,5vw,22px))}
-	.link-card-hero{min-height:100vh;border-radius:0;margin:0;width:100vw;max-width:100vw;box-shadow:none;--card-bg:url('../../assets/images/YVTEBATH-CENSOR.png') !important}
+	.link-card-hero{min-height:100vh;border-radius:0;margin:0;width:100vw;max-width:100vw;box-shadow:none;--card-bg:url('/assets/images/YVTEBATH-CENSOR.png') !important}
 	.link-card-hero .link-card-content{display:flex;justify-content:center;align-items:center;min-height:100vh;padding-top:218px}
 	.link-card-hero .link-card-button{animation:button-breathe 3s ease-in-out infinite}
 	.link-card-hero .cta-arrow{display:block;top:calc(55% - 25px);right:18px;transform:rotate(185deg) scale(1.08);animation:bounceArrow 1.6s ease-in-out infinite}
@@ -98,7 +98,7 @@ a{color:inherit;text-decoration:none}
 	/* Mobile: align CoffeeBreakDrip image flush to right edge */
 	.link-gallery-inner > article:last-of-type .link-card-background{background-position:right center !important}
 	/* Mobile: use fanvueHero for TikTok card */
-	.link-gallery-inner > article:nth-of-type(3){--card-bg:url('../../assets/images/fanvueHero.png') !important}
+	.link-gallery-inner > article:nth-of-type(3){--card-bg:url('/assets/images/fanvueHero.png') !important}
 	/* Mobile: disable hover effects */
 	.link-card:hover .link-card-background{transform:scale(1.02);filter:saturate(1.02)}
 	.link-card:hover::before{opacity:0.9}
