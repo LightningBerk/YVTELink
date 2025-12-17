@@ -173,12 +173,10 @@
 
   function updateStatus(authenticated) {
     if (authenticated) {
-      els.statusBadge.textContent = '✓ Authenticated';
-      els.statusBadge.className = 'status-badge authenticated';
+      // Status is now shown in the header with animated indicator
+      // Just show/hide export button based on auth status
       els.export.style.display = 'inline-block';
     } else {
-      els.statusBadge.textContent = '';
-      els.statusBadge.className = 'status-badge';
       els.export.style.display = 'none';
     }
   }
@@ -638,7 +636,9 @@
       renderHeatmap(summary.peak_hours || []);
       renderActivityFeed(summary.recent_activity || []);
 
-      els.lastUpdated.textContent = new Date().toLocaleTimeString();
+      if (els.lastUpdated) {
+        els.lastUpdated.textContent = new Date().toLocaleTimeString();
+      }
       showAlert('✓ Data loaded successfully', 'success');
     } catch (err) {
       showAlert('❌ Error: ' + err.message, 'error');
