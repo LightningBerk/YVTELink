@@ -20,6 +20,9 @@
     linksTbody: document.querySelector('#links tbody'),
     refTbody: document.querySelector('#referrers tbody'),
     countriesTbody: document.querySelector('#countries tbody'),
+    devicesTbody: document.querySelector('#devices tbody'),
+    osTbody: document.querySelector('#operating-systems tbody'),
+    browsersTbody: document.querySelector('#browsers tbody'),
     dateStartGroup: document.getElementById('date-start-group'),
     dateEndGroup: document.getElementById('date-end-group'),
     map: document.getElementById('map')
@@ -377,6 +380,9 @@
       renderTable(els.linksTbody, summary.top_links || [], ['label', 'clicks', 'uniques']);
       renderTable(els.refTbody, summary.top_referrers || [], ['referrer', 'pageviews']);
       renderTable(els.countriesTbody, summary.top_countries || [], ['country', 'pageviews', 'clicks', 'uniques']);
+      renderTable(els.devicesTbody, summary.devices || [], ['device', 'pageviews', 'uniques']);
+      renderTable(els.osTbody, summary.operating_systems || [], ['os', 'pageviews', 'uniques']);
+      renderTable(els.browsersTbody, summary.browsers || [], ['browser', 'pageviews', 'uniques']);
       renderMap(summary.locations || []);
       renderChart(summary.timeseries || []);
 
@@ -431,6 +437,27 @@
     lines.push(`Country,Pageviews,Clicks,Uniques`);
     (lastData.top_countries || []).forEach(row => {
       lines.push(`"${row.country || 'Unknown'}",${row.pageviews || 0},${row.clicks || 0},${row.uniques || 0}`);
+    });
+    lines.push('');
+
+    lines.push('DEVICES');
+    lines.push(`Device,Pageviews,Uniques`);
+    (lastData.devices || []).forEach(row => {
+      lines.push(`"${row.device || 'Unknown'}",${row.pageviews || 0},${row.uniques || 0}`);
+    });
+    lines.push('');
+
+    lines.push('OPERATING SYSTEMS');
+    lines.push(`OS,Pageviews,Uniques`);
+    (lastData.operating_systems || []).forEach(row => {
+      lines.push(`"${row.os || 'Unknown'}",${row.pageviews || 0},${row.uniques || 0}`);
+    });
+    lines.push('');
+
+    lines.push('BROWSERS');
+    lines.push(`Browser,Pageviews,Uniques`);
+    (lastData.browsers || []).forEach(row => {
+      lines.push(`"${row.browser || 'Unknown'}",${row.pageviews || 0},${row.uniques || 0}`);
     });
     lines.push('');
 

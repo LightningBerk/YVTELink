@@ -39,6 +39,51 @@ const BOT_UA_SUBSTRINGS = [
   'pingdom', 'monitor', 'HeadlessChrome', 'Google-PageSpeed', 'Semrush'
 ];
 
+function parseDeviceInfo(ua) {
+  const lower = ua.toLowerCase();
+  
+  // Device type
+  let device = 'Desktop';
+  if (/(iphone|ipod)/i.test(ua)) device = 'iPhone';
+  else if (/ipad/i.test(ua)) device = 'iPad';
+  else if (/android/i.test(ua) && /mobile/i.test(ua)) device = 'Android Phone';
+  else if (/android/i.test(ua)) device = 'Android Tablet';
+  else if (/(tablet|kindle|playbook|silk)/i.test(ua)) device = 'Tablet';
+  else if (/mobile/i.test(ua)) device = 'Mobile';
+  
+  // Operating System
+  let os = 'Unknown';
+  if (/windows nt 10/i.test(ua)) os = 'Windows 10/11';
+  else if (/windows nt 6.3/i.test(ua)) os = 'Windows 8.1';
+  else if (/windows nt 6.2/i.test(ua)) os = 'Windows 8';
+  else if (/windows nt 6.1/i.test(ua)) os = 'Windows 7';
+  else if (/windows/i.test(ua)) os = 'Windows';
+  else if (/iphone|ipad|ipod/i.test(ua)) {
+    const match = ua.match(/OS (\d+)[_\d]*/);
+    os = match ? `iOS ${match[1]}` : 'iOS';
+  }
+  else if (/android (\d+)/i.test(ua)) {
+    const match = ua.match(/android (\d+)/i);
+    os = match ? `Android ${match[1]}` : 'Android';
+  }
+  else if (/mac os x/i.test(ua)) {
+    const match = ua.match(/Mac OS X (\d+)[_\d]*/);
+    os = match ? `macOS ${match[1]}` : 'macOS';
+  }
+  else if (/linux/i.test(ua)) os = 'Linux';
+  else if (/cros/i.test(ua)) os = 'Chrome OS';
+  
+  // Browser
+  let browser = 'Unknown';
+  if (/edg/i.test(ua)) browser = 'Edge';
+  else if (/chrome/i.test(ua) && !/edg/i.test(ua)) browser = 'Chrome';
+  else if (/safari/i.test(ua) && !/chrome/i.test(ua)) browser = 'Safari';
+  else if (/firefox/i.test(ua)) browser = 'Firefox';
+  else if (/opera|opr/i.test(ua)) browser = 'Opera';
+  
+  return { device, os, browser };
+}
+
 // Basic in-memory rate limit per IP (best-effort)
 const rateMap = new Map();
 function rateLimited(ip) {
@@ -99,6 +144,9 @@ async function handleTrack(request, env, origin, allowedOrigin) {
   const ua = request.headers.get('User-Agent') || '';
   const bot = isBot(ua) ? 1 : 0;
 
+  // Parse device, OS, and browser from User-Agent
+  const deviceInfo = parseDeviceInfo(ua);
+
   // Extract geolocation from Cloudflare request object
   const geo = request.cf || {};
   const country = geo.country || null;
@@ -128,8 +176,9 @@ async function handleTrack(request, env, origin, allowedOrigin) {
       event_id, event_name, occurred_at, visitor_id, session_id, page_path,
       link_id, label, destination_url, referrer,
       utm_source, utm_medium, utm_campaign, utm_content, utm_term,
-      user_agent, is_bot, country, region, city, timezone, latitude, longitude
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      user_agent, is_bot, country, region, city, timezone, latitude, longitude,
+      device, os, browser
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
 
   const values = [
@@ -155,7 +204,10 @@ async function handleTrack(request, env, origin, allowedOrigin) {
     city,
     timezone,
     latitude,
-    longitude
+    longitude,
+    deviceInfo.device,
+    deviceInfo.os,
+    deviceInfo.browser
   ];
 
   try {
@@ -261,6 +313,36 @@ async function handleSummary(request, env, origin, allowedOrigin) {
     LIMIT 100;
   `;
 
+  const devicesSql = `
+    SELECT device,
+           SUM(CASE WHEN event_name='page_view' AND is_bot=0 THEN 1 ELSE 0 END) AS pageviews,
+           COUNT(DISTINCT CASE WHEN is_bot=0 THEN visitor_id END) AS uniques
+    FROM events
+    WHERE occurred_at BETWEEN ? AND ? AND device IS NOT NULL
+    GROUP BY device
+    ORDER BY pageviews DESC;
+  `;
+
+  const osSql = `
+    SELECT os,
+           SUM(CASE WHEN event_name='page_view' AND is_bot=0 THEN 1 ELSE 0 END) AS pageviews,
+           COUNT(DISTINCT CASE WHEN is_bot=0 THEN visitor_id END) AS uniques
+    FROM events
+    WHERE occurred_at BETWEEN ? AND ? AND os IS NOT NULL
+    GROUP BY os
+    ORDER BY pageviews DESC;
+  `;
+
+  const browsersSql = `
+    SELECT browser,
+           SUM(CASE WHEN event_name='page_view' AND is_bot=0 THEN 1 ELSE 0 END) AS pageviews,
+           COUNT(DISTINCT CASE WHEN is_bot=0 THEN visitor_id END) AS uniques
+    FROM events
+    WHERE occurred_at BETWEEN ? AND ? AND browser IS NOT NULL
+    GROUP BY browser
+    ORDER BY pageviews DESC;
+  `;
+
   const timeseriesSql = `
     SELECT strftime('%Y-%m-%d', datetime(occurred_at/1000, 'unixepoch')) AS day,
            SUM(CASE WHEN event_name='page_view' AND is_bot=0 THEN 1 ELSE 0 END) AS pageviews,
@@ -276,6 +358,9 @@ async function handleSummary(request, env, origin, allowedOrigin) {
   const referrers = await env.DB.prepare(referrersSql).bind(startMs, endMs).all();
   const countries = await env.DB.prepare(countriesSql).bind(startMs, endMs).all();
   const locations = await env.DB.prepare(locationsSql).bind(startMs, endMs).all();
+  const devices = await env.DB.prepare(devicesSql).bind(startMs, endMs).all();
+  const operatingSystems = await env.DB.prepare(osSql).bind(startMs, endMs).all();
+  const browsers = await env.DB.prepare(browsersSql).bind(startMs, endMs).all();
   const series = await env.DB.prepare(timeseriesSql).bind(startMs, endMs).all();
 
   const pageviews = totals?.pageviews || 0;
@@ -289,6 +374,9 @@ async function handleSummary(request, env, origin, allowedOrigin) {
     top_referrers: referrers?.results || [],
     top_countries: countries?.results || [],
     locations: locations?.results || [],
+    devices: devices?.results || [],
+    operating_systems: operatingSystems?.results || [],
+    browsers: browsers?.results || [],
     timeseries: series?.results || []
   }, origin, allowedOrigin);
 }
