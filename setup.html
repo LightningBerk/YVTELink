@@ -547,9 +547,21 @@
     </div>
   </div>
 
+  <script src="./config.js"></script>
   <script>
     (() => {
+      // Fallback to empty string if config not loaded - will show helpful error
       const API_BASE = (window.ANALYTICS_CONFIG?.ANALYTICS_API_BASE || '').replace(/\/$/, '');
+      
+      // Check if API_BASE is configured
+      if (!API_BASE) {
+        console.error('ANALYTICS_API_BASE not configured in config.js');
+        const statusEl = document.getElementById('status');
+        if (statusEl) {
+          statusEl.textContent = 'Error: API endpoint not configured. Check config.js file.';
+          statusEl.className = 'setup-status show error';
+        }
+      }
       
       const form = document.getElementById('setupForm');
       const tokenInput = document.getElementById('token');
@@ -631,6 +643,10 @@
         setLoading(true);
 
         try {
+          if (!API_BASE) {
+            throw new Error('API endpoint not configured. Please check config.js file.');
+          }
+
           const response = await fetch(`${API_BASE}/auth/setup`, {
             method: 'POST',
             headers: { 
@@ -640,7 +656,13 @@
             body: JSON.stringify({ password })
           });
 
-          const data = await response.json();
+          let data;
+          try {
+            data = await response.json();
+          } catch (parseError) {
+            // If response isn't JSON, the endpoint probably doesn't exist
+            throw new Error('Invalid API response. The /auth/setup endpoint may not be deployed yet. Run: wrangler publish');
+          }
 
           if (!response.ok || !data.ok) {
             throw new Error(data.error || 'Setup failed');
@@ -746,6 +768,5 @@
       tokenInput.focus();
     })();
   </script>
-  <script src="../config.js"></script>
 </body>
 </html>
