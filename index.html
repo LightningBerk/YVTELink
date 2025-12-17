@@ -225,6 +225,43 @@
         </div>
     </footer>
 
+    <script>
+        // Konami Code Easter Egg - redirects to admin login
+        // Code: ↑ ↑ ↓ ↓ ← → ← → B A
+        (function() {
+            const konamiCode = [
+                'ArrowUp', 'ArrowUp', 
+                'ArrowDown', 'ArrowDown', 
+                'ArrowLeft', 'ArrowRight', 
+                'ArrowLeft', 'ArrowRight', 
+                'b', 'a'
+            ];
+            let konamiIndex = 0;
+
+            document.addEventListener('keydown', function(e) {
+                const key = e.key.toLowerCase();
+                const expectedKey = konamiCode[konamiIndex].toLowerCase();
+
+                if (key === expectedKey || e.key === konamiCode[konamiIndex]) {
+                    konamiIndex++;
+                    
+                    if (konamiIndex === konamiCode.length) {
+                        // Konami code completed! Add a fun effect before redirect
+                        document.body.style.transition = 'transform 0.3s ease-out';
+                        document.body.style.transform = 'rotate(360deg)';
+                        
+                        setTimeout(() => {
+                            window.location.href = '/src/pages/login.html';
+                        }, 300);
+                    }
+                } else {
+                    // Reset if wrong key pressed
+                    konamiIndex = 0;
+                }
+            });
+        })();
+    </script>
+
     <script src="src/js/lib/main.js" defer></script>
 </body>
 </html>
