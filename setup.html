@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Setup - First Time Configuration</title>
+  <link rel="canonical" href="/setup.html" />
+  <meta name="robots" content="noindex" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .setup-container {
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .setup-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 48px 40px;
+      animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .setup-header {
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    .setup-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .setup-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #1a202c;
+      margin-bottom: 8px;
+    }
+
+    .setup-subtitle {
+      font-size: 14px;
+      color: #718096;
+      line-height: 1.6;
+    }
+
+    .setup-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #2d3748;
+      letter-spacing: 0.3px;
+    }
+
+    .form-help {
+      font-size: 12px;
+      color: #718096;
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    .form-input-wrapper {
+      position: relative;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+      background: #f7fafc;
+      font-family: 'Monaco', 'Courier New', monospace;
+    }
+
+    .form-input:focus {
+      outline: none;
+      background: white;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-input::placeholder {
+      color: #a0aec0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #718096;
+      font-size: 18px;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 150ms;
+    }
+
+    .password-toggle:hover {
+      color: #4a5568;
+    }
+
+    .password-toggle:focus {
+      outline: 2px solid #667eea;
+      outline-offset: 2px;
+    }
+
+    .password-strength {
+      margin-top: 8px;
+      font-size: 12px;
+      display: none;
+    }
+
+    .password-strength.show {
+      display: block;
+    }
+
+    .strength-meter {
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 2px;
+      margin-bottom: 6px;
+      overflow: hidden;
+    }
+
+    .strength-fill {
+      height: 100%;
+      width: 0%;
+      transition: all 300ms;
+      border-radius: 2px;
+    }
+
+    .strength-fill.weak { width: 33%; background: #fc8181; }
+    .strength-fill.medium { width: 66%; background: #f6ad55; }
+    .strength-fill.strong { width: 100%; background: #48bb78; }
+
+    .strength-text {
+      color: #718096;
+    }
+
+    .strength-text.weak { color: #e53e3e; }
+    .strength-text.medium { color: #dd6b20; }
+    .strength-text.strong { color: #2f855a; }
+
+    .form-error {
+      font-size: 13px;
+      color: #e53e3e;
+      margin-top: 4px;
+      display: none;
+      animation: shake 0.3s;
+    }
+
+    .form-error.show {
+      display: block;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+
+    .setup-button {
+      width: 100%;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 200ms;
+      margin-top: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .setup-button:hover:not(:disabled) {
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .setup-button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .setup-button:focus {
+      outline: 2px solid #667eea;
+      outline-offset: 2px;
+    }
+
+    .setup-button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .button-text {
+      display: inline-block;
+      transition: opacity 200ms;
+    }
+
+    .button-spinner {
+      display: none;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 8px;
+    }
+
+    .setup-button.loading .button-spinner {
+      display: inline-block;
+    }
+
+    .setup-button.loading .button-text {
+      opacity: 0.7;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .setup-status {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+      animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .setup-status.show {
+      display: block;
+    }
+
+    .setup-status.success {
+      background: #c6f6d5;
+      color: #22543d;
+      border: 1px solid #9ae6b4;
+    }
+
+    .setup-status.error {
+      background: #fed7d7;
+      color: #742a2a;
+      border: 1px solid #fc8181;
+    }
+
+    .setup-status.info {
+      background: #bee3f8;
+      color: #2c5282;
+      border: 1px solid #90cdf4;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .setup-footer {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #e2e8f0;
+      text-align: center;
+      font-size: 12px;
+      color: #718096;
+      line-height: 1.6;
+    }
+
+    .setup-footer code {
+      background: #edf2f7;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      color: #2d3748;
+    }
+
+    .info-box {
+      background: #edf2f7;
+      border-left: 4px solid #667eea;
+      padding: 12px 16px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: #2d3748;
+      line-height: 1.6;
+    }
+
+    .info-box strong {
+      color: #1a202c;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .setup-card {
+        padding: 36px 24px;
+      }
+
+      .setup-title {
+        font-size: 20px;
+      }
+
+      .setup-icon {
+        font-size: 40px;
+      }
+    }
+
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+      }
+
+      .setup-card {
+        background: #2d3748;
+        color: #e2e8f0;
+      }
+
+      .setup-title {
+        color: #f7fafc;
+      }
+
+      .setup-subtitle {
+        color: #cbd5e0;
+      }
+
+      .form-label {
+        color: #e2e8f0;
+      }
+
+      .form-help {
+        color: #a0aec0;
+      }
+
+      .form-input {
+        background: #1a202c;
+        border-color: #4a5568;
+        color: #e2e8f0;
+      }
+
+      .form-input:focus {
+        background: #2d3748;
+        border-color: #667eea;
+      }
+
+      .form-input::placeholder {
+        color: #718096;
+      }
+
+      .password-toggle {
+        color: #a0aec0;
+      }
+
+      .password-toggle:hover {
+        color: #cbd5e0;
+      }
+
+      .setup-footer {
+        border-color: #4a5568;
+        color: #a0aec0;
+      }
+
+      .setup-footer code {
+        background: #1a202c;
+        color: #e2e8f0;
+      }
+
+      .info-box {
+        background: #1a202c;
+        border-color: #667eea;
+        color: #cbd5e0;
+      }
+
+      .info-box strong {
+        color: #f7fafc;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="setup-container">
+    <div class="setup-card">
+      <div class="setup-header">
+        <span class="setup-icon">🔐</span>
+        <h1 class="setup-title">Admin Account Setup</h1>
+        <p class="setup-subtitle">Create your admin account with a secure password</p>
+      </div>
+
+      <div class="info-box">
+        <strong>⚠️ One-Time Setup:</strong> You need your <code>ADMIN_TOKEN</code> to complete this setup. After creating your password, you'll use it to login to the dashboard.
+      </div>
+
+      <div id="status" class="setup-status" role="alert" aria-live="polite"></div>
+
+      <form id="setupForm" class="setup-form" novalidate>
+        <div class="form-group">
+          <label for="token" class="form-label">Admin Token (Required)</label>
+          <div class="form-input-wrapper">
+            <input
+              id="token"
+              type="password"
+              class="form-input"
+              placeholder="Paste your ADMIN_TOKEN here"
+              autocomplete="off"
+              required
+              aria-label="Admin Token"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              id="toggleToken"
+              aria-label="Show token"
+              title="Show token"
+            >
+              👁️
+            </button>
+          </div>
+          <p class="form-help">This is the secret token set in your Cloudflare Worker environment variables.</p>
+          <div id="tokenError" class="form-error" role="alert"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="form-label">New Admin Password</label>
+          <div class="form-input-wrapper">
+            <input
+              id="password"
+              type="password"
+              class="form-input"
+              placeholder="Create a secure password"
+              autocomplete="new-password"
+              required
+              aria-label="New password"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              id="togglePassword"
+              aria-label="Show password"
+              title="Show password"
+            >
+              👁️
+            </button>
+          </div>
+          <div id="passwordStrength" class="password-strength">
+            <div class="strength-meter">
+              <div id="strengthFill" class="strength-fill"></div>
+            </div>
+            <div id="strengthText" class="strength-text">Enter a password</div>
+          </div>
+          <p class="form-help">Use at least 8 characters with a mix of letters, numbers, and symbols.</p>
+          <div id="passwordError" class="form-error" role="alert"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword" class="form-label">Confirm Password</label>
+          <div class="form-input-wrapper">
+            <input
+              id="confirmPassword"
+              type="password"
+              class="form-input"
+              placeholder="Re-enter your password"
+              autocomplete="new-password"
+              required
+              aria-label="Confirm password"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              id="toggleConfirm"
+              aria-label="Show password"
+              title="Show password"
+            >
+              👁️
+            </button>
+          </div>
+          <div id="confirmError" class="form-error" role="alert"></div>
+        </div>
+
+        <button type="submit" id="submitBtn" class="setup-button">
+          <span class="button-spinner"></span>
+          <span class="button-text">Create Admin Account</span>
+        </button>
+      </form>
+
+      <div class="setup-footer">
+        <p>Already have an account? <a href="/login.html" style="color: #667eea; text-decoration: none;">Login here</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const API_BASE = (window.ANALYTICS_CONFIG?.ANALYTICS_API_BASE || '').replace(/\/$/, '');
+      
+      const form = document.getElementById('setupForm');
+      const tokenInput = document.getElementById('token');
+      const passwordInput = document.getElementById('password');
+      const confirmInput = document.getElementById('confirmPassword');
+      const toggleToken = document.getElementById('toggleToken');
+      const togglePassword = document.getElementById('togglePassword');
+      const toggleConfirm = document.getElementById('toggleConfirm');
+      const submitBtn = document.getElementById('submitBtn');
+      const statusEl = document.getElementById('status');
+      const tokenError = document.getElementById('tokenError');
+      const passwordError = document.getElementById('passwordError');
+      const confirmError = document.getElementById('confirmError');
+      const passwordStrength = document.getElementById('passwordStrength');
+      const strengthFill = document.getElementById('strengthFill');
+      const strengthText = document.getElementById('strengthText');
+
+      // =====================================================================
+      // Event Listeners
+      // =====================================================================
+
+      form.addEventListener('submit', handleSubmit);
+
+      toggleToken.addEventListener('click', () => toggleVisibility(tokenInput, toggleToken));
+      togglePassword.addEventListener('click', () => toggleVisibility(passwordInput, togglePassword));
+      toggleConfirm.addEventListener('click', () => toggleVisibility(confirmInput, toggleConfirm));
+
+      tokenInput.addEventListener('input', () => clearError(tokenError));
+      passwordInput.addEventListener('input', () => {
+        clearError(passwordError);
+        updatePasswordStrength();
+      });
+      confirmInput.addEventListener('input', () => clearError(confirmError));
+
+      // =====================================================================
+      // Handlers
+      // =====================================================================
+
+      async function handleSubmit(e) {
+        e.preventDefault();
+        clearAllErrors();
+        clearStatus();
+
+        const token = tokenInput.value.trim();
+        const password = passwordInput.value.trim();
+        const confirm = confirmInput.value.trim();
+
+        // Validation
+        if (!token) {
+          showFieldError(tokenError, 'Admin token is required');
+          tokenInput.focus();
+          return;
+        }
+
+        if (!password) {
+          showFieldError(passwordError, 'Password is required');
+          passwordInput.focus();
+          return;
+        }
+
+        if (password.length < 8) {
+          showFieldError(passwordError, 'Password must be at least 8 characters');
+          passwordInput.focus();
+          return;
+        }
+
+        if (!confirm) {
+          showFieldError(confirmError, 'Please confirm your password');
+          confirmInput.focus();
+          return;
+        }
+
+        if (password !== confirm) {
+          showFieldError(confirmError, 'Passwords do not match');
+          confirmInput.focus();
+          return;
+        }
+
+        setLoading(true);
+
+        try {
+          const response = await fetch(`${API_BASE}/auth/setup`, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ password })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok || !data.ok) {
+            throw new Error(data.error || 'Setup failed');
+          }
+
+          // Success! Show message and redirect to login
+          showStatus('✓ Account created successfully! Redirecting to login...', 'success');
+          setTimeout(() => {
+            window.location.href = '/login.html';
+          }, 1500);
+        } catch (err) {
+          const message = err.message || 'Network error';
+          if (message.includes('unauthorized') || message.includes('Invalid token')) {
+            showFieldError(tokenError, 'Invalid admin token. Please check your ADMIN_TOKEN.');
+            tokenInput.focus();
+          } else {
+            showStatus('Error: ' + message, 'error');
+          }
+          setLoading(false);
+        }
+      }
+
+      function toggleVisibility(input, button) {
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        button.textContent = isPassword ? '🙈' : '👁️';
+        button.setAttribute('aria-label', isPassword ? 'Hide' : 'Show');
+      }
+
+      function updatePasswordStrength() {
+        const password = passwordInput.value;
+        passwordStrength.classList.add('show');
+
+        if (!password) {
+          strengthFill.className = 'strength-fill';
+          strengthText.className = 'strength-text';
+          strengthText.textContent = 'Enter a password';
+          return;
+        }
+
+        let strength = 0;
+        if (password.length >= 8) strength++;
+        if (password.length >= 12) strength++;
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+        if (/\d/.test(password)) strength++;
+        if (/[^a-zA-Z0-9]/.test(password)) strength++;
+
+        if (strength <= 2) {
+          strengthFill.className = 'strength-fill weak';
+          strengthText.className = 'strength-text weak';
+          strengthText.textContent = 'Weak password';
+        } else if (strength <= 4) {
+          strengthFill.className = 'strength-fill medium';
+          strengthText.className = 'strength-text medium';
+          strengthText.textContent = 'Medium strength';
+        } else {
+          strengthFill.className = 'strength-fill strong';
+          strengthText.className = 'strength-text strong';
+          strengthText.textContent = 'Strong password';
+        }
+      }
+
+      // =====================================================================
+      // UI Helpers
+      // =====================================================================
+
+      function showFieldError(errorEl, msg) {
+        errorEl.textContent = msg;
+        errorEl.classList.add('show');
+      }
+
+      function clearError(errorEl) {
+        errorEl.textContent = '';
+        errorEl.classList.remove('show');
+      }
+
+      function clearAllErrors() {
+        clearError(tokenError);
+        clearError(passwordError);
+        clearError(confirmError);
+      }
+
+      function showStatus(msg, type) {
+        statusEl.textContent = msg;
+        statusEl.className = `setup-status show ${type}`;
+      }
+
+      function clearStatus() {
+        statusEl.textContent = '';
+        statusEl.classList.remove('show', 'success', 'error', 'info');
+      }
+
+      function setLoading(loading) {
+        submitBtn.disabled = loading;
+        if (loading) {
+          submitBtn.classList.add('loading');
+        } else {
+          submitBtn.classList.remove('loading');
+        }
+      }
+
+      // Auto-focus token field
+      tokenInput.focus();
+    })();
+  </script>
+  <script src="../config.js"></script>
+</body>
+</html>

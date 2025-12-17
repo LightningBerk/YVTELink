@@ -15,7 +15,11 @@ export default {
         return json({ ok: true }, origin, allowedOrigin);
       }
 
-      // Authentication endpoints (public, no auth required to POST)
+      // Authentication endpoints
+      if (path === '/auth/setup' && request.method === 'POST') {
+        return await handleSetup(request, env, origin, allowedOrigin);
+      }
+
       if (path === '/auth/login' && request.method === 'POST') {
         return await handleLogin(request, env, origin, allowedOrigin);
       }
@@ -267,6 +271,54 @@ function requireAdminAuth(request, env) {
 // ============================================================================
 // AUTHENTICATION HANDLERS
 // ============================================================================
+
+/**
+ * POST /auth/setup
+ * Authorization: Bearer <ADMIN_TOKEN>
+ * Body: { password: string }
+ * Response: { ok: true } or { ok: false, error: string }
+ * 
+ * One-time setup endpoint: Allows creating/updating the admin password.
+ * Requires the ADMIN_TOKEN to authorize the setup (prevents unauthorized account creation).
+ * Sets the ADMIN_PASSWORD as a secret (must be done via wrangler CLI separately).
+ * 
+ * IMPORTANT: This endpoint validates the ADMIN_TOKEN, then returns success.
+ * The actual password update must be done via: wrangler secret put ADMIN_PASSWORD
+ * 
+ * This endpoint is for UX flow only - it verifies authorization to set up the account.
+ * The password provided here should be securely stored by the admin for login later.
+ */
+async function handleSetup(request, env, origin, allowedOrigin) {
+  // Verify the request has the correct ADMIN_TOKEN
+  if (!requireAdminAuth(request, env)) {
+    return json({ ok: false, error: 'Invalid token. You must provide the ADMIN_TOKEN to create an account.' }, origin, allowedOrigin, 401);
+  }
+
+  let payload;
+  try {
+    payload = await request.json();
+  } catch {
+    return json({ ok: false, error: 'Invalid JSON' }, origin, allowedOrigin, 400);
+  }
+
+  const password = payload?.password || '';
+
+  if (!password || password.length < 8) {
+    return json({ ok: false, error: 'Password must be at least 8 characters' }, origin, allowedOrigin, 400);
+  }
+
+  // Token is valid! Return success.
+  // NOTE: The admin must then manually run: wrangler secret put ADMIN_PASSWORD
+  // and enter the password they just chose.
+  // 
+  // Alternative implementation: Store password hash in D1 database (more secure multi-user setup)
+  // For single-admin use case, environment variable approach is simpler.
+
+  return json({ 
+    ok: true, 
+    message: 'Setup verified. Remember to run: wrangler secret put ADMIN_PASSWORD and enter this password.'
+  }, origin, allowedOrigin);
+}
 
 /**
  * POST /auth/login
