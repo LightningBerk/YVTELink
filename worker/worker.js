@@ -381,7 +381,7 @@ async function handleLogout(request, env, origin, allowedOrigin) {
   return json({ ok: true }, origin, allowedOrigin);
 }
 
-async function handleTrack(request, env, origin, allowedOrigin) {
+async function handleSummary(request, env, origin, allowedOrigin) {
   if (!requireAdminAuth(request, env)) {
     return json({ error: 'unauthorized' }, origin, allowedOrigin, 401);
   }
