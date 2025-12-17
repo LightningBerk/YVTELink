@@ -18,39 +18,51 @@
 </head>
 <body class="admin">
   <div class="admin-header">
-    <h1>📊 Analytics Dashboard <span id="status-badge" class="status-badge"></span></h1>
+    <div class="admin-header-content">
+      <div>
+        <h1>📊 Analytics Dashboard</h1>
+        <p class="admin-header-subtitle">Real-time insights and performance metrics</p>
+      </div>
+      <span id="status-badge" class="status-badge"></span>
+    </div>
   </div>
 
   <div class="admin-container">
     <div id="alert" style="display:none"></div>
 
     <div class="admin-controls">
-      <div class="admin-control-group">
-        <label for="token">Admin Token</label>
-        <input id="token" class="admin-input" type="password" placeholder="Paste your admin token" autocomplete="off" />
+      <div class="controls-header">
+        <h3 class="controls-title">Dashboard Controls</h3>
+      </div>
+      
+      <div class="controls-grid">
+        <div class="admin-control-group">
+          <label for="token">Admin Token</label>
+          <input id="token" class="admin-input" type="password" placeholder="Paste your admin token" autocomplete="off" />
+        </div>
+
+        <div class="admin-control-group">
+          <label for="range">Date Range</label>
+          <select id="range" class="admin-input">
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="custom">Custom range</option>
+          </select>
+        </div>
+
+        <div class="admin-control-group" id="date-start-group" style="display:none">
+          <label for="start">Start Date</label>
+          <input id="start" class="admin-input" type="date" />
+        </div>
+
+        <div class="admin-control-group" id="date-end-group" style="display:none">
+          <label for="end">End Date</label>
+          <input id="end" class="admin-input" type="date" />
+        </div>
       </div>
 
-      <div class="admin-control-group">
-        <label for="range">Date Range</label>
-        <select id="range" class="admin-input">
-          <option value="7d">Last 7 days</option>
-          <option value="30d">Last 30 days</option>
-          <option value="custom">Custom range</option>
-        </select>
-      </div>
-
-      <div class="admin-control-group" id="date-start-group" style="display:none">
-        <label for="start">Start Date</label>
-        <input id="start" class="admin-input" type="date" />
-      </div>
-
-      <div class="admin-control-group" id="date-end-group" style="display:none">
-        <label for="end">End Date</label>
-        <input id="end" class="admin-input" type="date" />
-      </div>
-
-      <div style="display:flex;gap:12px">
-        <button id="load" class="admin-btn">Load Data</button>
+      <div class="controls-actions">
+        <button id="load" class="admin-btn primary">Load Data</button>
         <button id="export" class="admin-btn secondary" style="display:none">Export CSV</button>
       </div>
     </div>
@@ -83,16 +95,16 @@
 
     <div class="section">
       <h2>Peak Hours Heatmap</h2>
-      <p style="margin: 0 0 16px 0; color: #6B3A8A; font-size: 0.9rem;">When your audience is most active (hover for details)</p>
-      <div id="heatmap-container" style="overflow-x: auto;">
+      <p>When your audience is most active (hover for details)</p>
+      <div id="heatmap-container">
         <canvas id="heatmap" width="900" height="220"></canvas>
       </div>
     </div>
 
     <div class="section">
       <h2>Recent Activity</h2>
-      <p style="margin: 0 0 16px 0; color: #6B3A8A; font-size: 0.9rem;">Last 50 events in real-time</p>
-      <div id="activity-feed" style="max-height: 400px; overflow-y: auto; background: #f8f9fa; border-radius: 8px; padding: 12px;">
+      <p>Last 50 events in real-time</p>
+      <div id="activity-feed">
         <!-- Activity items will be inserted here -->
       </div>
     </div>
@@ -130,7 +142,7 @@
 
     <div class="section">
       <h2>UTM Campaign Performance</h2>
-      <p style="margin: 0 0 16px 0; color: #6B3A8A; font-size: 0.9rem;">Track marketing campaigns and traffic sources</p>
+      <p>Track marketing campaigns and traffic sources</p>
       <div class="table-wrapper">
         <table id="utm-campaigns">
           <thead>
@@ -150,7 +162,7 @@
 
     <div class="section">
       <h2>Visitor Map</h2>
-      <div id="map" style="height: 450px; border-radius: 12px; overflow: hidden;"></div>
+      <div id="map"></div>
     </div>
 
     <div class="section">
@@ -172,9 +184,10 @@
 
     <div class="section">
       <h2>Device Breakdown</h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-        <div class="table-wrapper">
-          <h3 style="margin: 0 0 12px 0; font-size: 1rem; color: #6B3A8A;">Devices</h3>
+      <div class="device-grid">
+        <div>
+          <h3>Devices</h3>
+          <div class="table-wrapper">
           <table id="devices">
             <thead>
               <tr>
@@ -185,9 +198,11 @@
             </thead>
             <tbody></tbody>
           </table>
+          </div>
         </div>
-        <div class="table-wrapper">
-          <h3 style="margin: 0 0 12px 0; font-size: 1rem; color: #6B3A8A;">Operating Systems</h3>
+        <div>
+          <h3>Operating Systems</h3>
+          <div class="table-wrapper">
           <table id="operating-systems">
             <thead>
               <tr>
@@ -198,9 +213,11 @@
             </thead>
             <tbody></tbody>
           </table>
+          </div>
         </div>
-        <div class="table-wrapper">
-          <h3 style="margin: 0 0 12px 0; font-size: 1rem; color: #6B3A8A;">Browsers</h3>
+        <div>
+          <h3>Browsers</h3>
+          <div class="table-wrapper">
           <table id="browsers">
             <thead>
               <tr>
@@ -211,13 +228,14 @@
             </thead>
             <tbody></tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>
 
-    <div style="text-align:center;padding:40px 0;color:#6B3A8A;font-size:0.85rem">
-      <p>Last updated: <span id="last-updated">Never</span></p>
-      <p>Data is automatically cached and updated every 60 seconds when you have the dashboard open.</p>
+    <div class="dashboard-footer">
+      <p>Last updated: <strong id="last-updated">Never</strong></p>
+      <p>Data automatically refreshes every 60 seconds</p>
     </div>
   </div>
 </body>
