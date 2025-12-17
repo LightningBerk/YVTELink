@@ -20,7 +20,7 @@
       // No token found, redirect to login
       // Save the current URL so we can return after login
       sessionStorage.setItem('return_to', window.location.href);
-      window.location.href = '/login.html';
+      window.location.href = '/src/pages/login.html';
       return false;
     }
 
@@ -48,7 +48,7 @@
       sessionStorage.removeItem('auth_token');
       localStorage.removeItem('auth_token_backup');
       sessionStorage.setItem('return_to', window.location.href);
-      window.location.href = '/login.html';
+      window.location.href = '/src/pages/login.html';
       return false;
     }
   }
@@ -89,7 +89,7 @@
       // Clear tokens and redirect to login
       sessionStorage.removeItem('auth_token');
       localStorage.removeItem('auth_token_backup');
-      window.location.href = '/login.html';
+      window.location.href = '/src/pages/login.html';
     }
   }
 
@@ -159,7 +159,7 @@
         sessionStorage.removeItem('auth_token');
         localStorage.removeItem('auth_token_backup');
         sessionStorage.setItem('return_to', window.location.href);
-        window.location.href = '/login.html';
+        window.location.href = '/src/pages/login.html';
       }
       updateStatus(false);
       throw new Error('API error ' + res.status);

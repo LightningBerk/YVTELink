@@ -12,6 +12,12 @@ Welcome to the YVTELink documentation. This index will help you find what you're
 - **[SETUP_GUIDE.md](SETUP_GUIDE.md)** — Step-by-step installation and deployment guide (12 steps)
 - **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** — Essential commands and common tasks
 
+### Authentication
+- **[AUTH_QUICKSTART.md](auth/AUTH_QUICKSTART.md)** — 60-second authentication reference card
+- **[AUTH_SETUP.md](auth/AUTH_SETUP.md)** — Complete authentication setup with 15-point testing checklist
+- **[AUTH_SUMMARY.md](auth/AUTH_SUMMARY.md)** — Architecture overview and API reference
+- **[SECURE_SETUP_GUIDE.md](auth/SECURE_SETUP_GUIDE.md)** — Token-gated admin account creation
+
 ### For Developers
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — System design, data flow, component breakdown
 - **[API.md](API.md)** — REST API reference with all endpoints and examples

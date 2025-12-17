@@ -75,36 +75,127 @@ cd worker && wrangler deploy
 
 ### Local Testing
 
-1. Open `index.html` in your browser (or use `python -m http.server 8000`)
-2. Navigate to `/admin/admin.html` and enter your admin token
-3. Select a date range and click "Load Data"
+1. Start a local server:
+   ```bash
+   # Using Python
+   python -m http.server 8000
+   
+   # Or using Node.js
+   npx http-server -p 8000
+   ```
+2. Open `http://localhost:8000` in your browser
+3. Navigate to `http://localhost:8000/src/pages/dashboard.html` (or use `/admin/admin.html` which redirects)
+4. Login with your admin password
+5. Select a date range and click "Load Data"
+
+### Accessing Pages
+
+- **Landing Page**: `http://localhost:8000/` or `http://localhost:8000/index.html`
+- **Login**: `http://localhost:8000/src/pages/login.html` (or `/login.html`)
+- **Setup**: `http://localhost:8000/src/pages/setup.html` (or `/setup.html`)
+- **Dashboard**: `http://localhost:8000/src/pages/dashboard.html` (or `/admin/admin.html`)
 
 ## 📚 Documentation
 
+### Core Documentation
 - **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** — System design and component overview
 - **[SETUP_GUIDE.md](docs/SETUP_GUIDE.md)** — Detailed deployment instructions
 - **[DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)** — CSS tokens and component styles
 - **[API.md](docs/API.md)** — Analytics API endpoints and data models
 - **[ANALYTICS.md](docs/ANALYTICS.md)** — Tracking events and implementation details
 
+### Authentication
+- **[AUTH_QUICKSTART.md](docs/auth/AUTH_QUICKSTART.md)** — 60-second authentication reference
+- **[AUTH_SETUP.md](docs/auth/AUTH_SETUP.md)** — Complete setup guide with testing checklist
+- **[AUTH_SUMMARY.md](docs/auth/AUTH_SUMMARY.md)** — Architecture overview and API reference
+- **[SECURE_SETUP_GUIDE.md](docs/auth/SECURE_SETUP_GUIDE.md)** — Token-gated account creation
+
+### Additional Resources
+- **[QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md)** — Essential commands and common tasks
+- **[CONTRIBUTING.md](docs/CONTRIBUTING.md)** — Development workflow and guidelines
+- **[INDEX.md](docs/INDEX.md)** — Complete documentation index
+
 ## 🏗️ Project Structure
 
 ```
-├── index.html              # Main landing page
+YVTELink/
+├── index.html                    # Landing page (root for GitHub Pages)
+├── login.html                    # Redirect to /src/pages/login.html
+├── setup.html                    # Redirect to /src/pages/setup.html
 ├── admin/
-│   ├── admin.html          # Analytics dashboard
-│   ├── admin.js            # Dashboard logic
-│   └── admin.css           # Dashboard styles
-├── worker/
-│   ├── worker.js           # Cloudflare Worker API
-│   ├── wrangler.toml       # Worker configuration
-│   └── migrations/         # D1 database migrations
-├── config.js               # Analytics configuration
-├── analytics.js            # Tracking implementation
-├── main.js                 # Page logic
-├── styles.css              # Global styles
-└── assets/                 # Images and icons
+│   └── admin.html                # Redirect to /src/pages/dashboard.html
+│
+├── src/                          # Source files (organized)
+│   ├── pages/
+│   │   ├── login.html            # Authentication page
+│   │   ├── setup.html            # Admin account setup
+│   │   └── dashboard.html        # Analytics dashboard
+│   ├── styles/
+│   │   ├── main.css              # Global styles
+│   │   └── dashboard.css         # Dashboard-specific styles
+│   └── js/
+│       ├── lib/                  # Shared libraries
+│       │   ├── config.js         # API configuration
+│       │   ├── analytics.js      # Tracking implementation
+│       │   └── main.js           # Landing page logic
+│       ├── services/             # Business logic
+│       │   └── dashboard.js      # Dashboard functionality
+│       └── utils/                # Utilities (reserved for future)
+│
+├── assets/                       # Static assets
+│   ├── icons/                    # SVG and PNG icons
+│   └── images/                   # Hero images and graphics
+│
+├── worker/                       # Cloudflare Worker backend
+│   ├── worker.js                 # API endpoints and logic
+│   ├── wrangler.toml             # Worker configuration
+│   └── migrations/               # D1 database migrations
+│
+├── docs/                         # Documentation
+│   ├── auth/                     # Authentication docs
+│   │   ├── AUTH_SETUP.md
+│   │   ├── AUTH_SUMMARY.md
+│   │   ├── AUTH_QUICKSTART.md
+│   │   └── SECURE_SETUP_GUIDE.md
+│   ├── ARCHITECTURE.md
+│   ├── SETUP_GUIDE.md
+│   ├── API.md
+│   ├── ANALYTICS.md
+│   ├── QUICK_REFERENCE.md
+│   ├── CONTRIBUTING.md
+│   └── INDEX.md
+│
+├── DESIGN_SYSTEM.md              # Design tokens and components
+├── CNAME                         # Custom domain configuration
+└── README.md                     # This file
 ```
+
+### File Organization Principles
+
+**Pages (`src/pages/`)** — All HTML pages except the landing page (index.html stays in root for GitHub Pages)
+
+**Styles (`src/styles/`)** — CSS files with descriptive names (main.css, dashboard.css)
+
+**JavaScript (`src/js/`)** — Organized by purpose:
+  - `lib/` — Reusable libraries (config, analytics, utilities)
+  - `services/` — Business logic modules (dashboard management)
+  - `utils/` — Helper functions (reserved for future expansion)
+
+**Assets (`assets/`)** — Images and icons used across the site
+
+**Worker (`worker/`)** — Serverless backend isolated from frontend
+
+**Documentation (`docs/`)** — All guides consolidated in one location
+  - `docs/auth/` — Authentication-specific documentation
+
+### Backward Compatibility
+
+For seamless migration, redirect pages are maintained at legacy URLs:
+- `/login.html` → redirects to `/src/pages/login.html`
+- `/setup.html` → redirects to `/src/pages/setup.html`
+- `/admin/admin.html` → redirects to `/src/pages/dashboard.html`
+
+This ensures existing bookmarks and links continue to work.
 
 ## 🔧 Technology Stack
 
