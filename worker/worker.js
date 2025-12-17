@@ -353,6 +353,53 @@ async function handleSummary(request, env, origin, allowedOrigin) {
     ORDER BY day ASC;
   `;
 
+  const peakHoursSql = `
+    SELECT 
+      CAST(strftime('%H', datetime(occurred_at/1000, 'unixepoch')) AS INTEGER) AS hour,
+      CAST(strftime('%w', datetime(occurred_at/1000, 'unixepoch')) AS INTEGER) AS day_of_week,
+      SUM(CASE WHEN event_name='page_view' AND is_bot=0 THEN 1 ELSE 0 END) AS pageviews,
+      SUM(CASE WHEN event_name='link_click' AND is_bot=0 THEN 1 ELSE 0 END) AS clicks
+    FROM events
+    WHERE occurred_at BETWEEN ? AND ? AND is_bot=0
+    GROUP BY hour, day_of_week
+    ORDER BY hour, day_of_week;
+  `;
+
+  const utmCampaignsSql = `
+    SELECT 
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      SUM(CASE WHEN event_name='page_view' AND is_bot=0 THEN 1 ELSE 0 END) AS pageviews,
+      SUM(CASE WHEN event_name='link_click' AND is_bot=0 THEN 1 ELSE 0 END) AS clicks,
+      COUNT(DISTINCT CASE WHEN is_bot=0 THEN visitor_id END) AS uniques
+    FROM events
+    WHERE occurred_at BETWEEN ? AND ? 
+      AND is_bot=0
+      AND (utm_source IS NOT NULL OR utm_medium IS NOT NULL OR utm_campaign IS NOT NULL)
+    GROUP BY utm_source, utm_medium, utm_campaign
+    ORDER BY pageviews DESC
+    LIMIT 20;
+  `;
+
+  const recentActivitySql = `
+    SELECT 
+      event_name,
+      occurred_at,
+      page_path,
+      link_id,
+      label,
+      country,
+      city,
+      device,
+      browser,
+      referrer
+    FROM events
+    WHERE occurred_at BETWEEN ? AND ? AND is_bot=0
+    ORDER BY occurred_at DESC
+    LIMIT 50;
+  `;
+
   const totals = await env.DB.prepare(totalsSql).bind(startMs, endMs).first();
   const topLinks = await env.DB.prepare(topLinksSql).bind(startMs, endMs).all();
   const referrers = await env.DB.prepare(referrersSql).bind(startMs, endMs).all();
@@ -362,6 +409,9 @@ async function handleSummary(request, env, origin, allowedOrigin) {
   const operatingSystems = await env.DB.prepare(osSql).bind(startMs, endMs).all();
   const browsers = await env.DB.prepare(browsersSql).bind(startMs, endMs).all();
   const series = await env.DB.prepare(timeseriesSql).bind(startMs, endMs).all();
+  const peakHours = await env.DB.prepare(peakHoursSql).bind(startMs, endMs).all();
+  const utmCampaigns = await env.DB.prepare(utmCampaignsSql).bind(startMs, endMs).all();
+  const recentActivity = await env.DB.prepare(recentActivitySql).bind(startMs, endMs).all();
 
   const pageviews = totals?.pageviews || 0;
   const clicks = totals?.clicks || 0;
@@ -377,7 +427,10 @@ async function handleSummary(request, env, origin, allowedOrigin) {
     devices: devices?.results || [],
     operating_systems: operatingSystems?.results || [],
     browsers: browsers?.results || [],
-    timeseries: series?.results || []
+    timeseries: series?.results || [],
+    peak_hours: peakHours?.results || [],
+    utm_campaigns: utmCampaigns?.results || [],
+    recent_activity: recentActivity?.results || []
   }, origin, allowedOrigin);
 }
 

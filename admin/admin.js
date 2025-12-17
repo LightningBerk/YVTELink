@@ -17,12 +17,15 @@
     kpiUniques: document.getElementById('kpi-uniques'),
     kpiCtr: document.getElementById('kpi-ctr'),
     chart: document.getElementById('chart'),
+    heatmap: document.getElementById('heatmap'),
+    activityFeed: document.getElementById('activity-feed'),
     linksTbody: document.querySelector('#links tbody'),
     refTbody: document.querySelector('#referrers tbody'),
     countriesTbody: document.querySelector('#countries tbody'),
     devicesTbody: document.querySelector('#devices tbody'),
     osTbody: document.querySelector('#operating-systems tbody'),
     browsersTbody: document.querySelector('#browsers tbody'),
+    utmTbody: document.querySelector('#utm-campaigns tbody'),
     dateStartGroup: document.getElementById('date-start-group'),
     dateEndGroup: document.getElementById('date-end-group'),
     map: document.getElementById('map')
@@ -358,6 +361,109 @@
     }
   }
 
+  function renderHeatmap(peakHours) {
+    if (!els.heatmap) return;
+    const canvas = els.heatmap;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    const h = canvas.height;
+
+    ctx.clearRect(0, 0, w, h);
+
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const cellWidth = (w - 60) / 24;
+    const cellHeight = (h - 40) / 7;
+
+    // Create data map
+    const dataMap = {};
+    let maxViews = 1;
+    (peakHours || []).forEach(item => {
+      const key = `${item.hour}-${item.day_of_week}`;
+      dataMap[key] = item.pageviews || 0;
+      maxViews = Math.max(maxViews, item.pageviews || 0);
+    });
+
+    // Draw cells
+    for (let day = 0; day < 7; day++) {
+      for (let hour = 0; hour < 24; hour++) {
+        const key = `${hour}-${day}`;
+        const views = dataMap[key] || 0;
+        const intensity = views / maxViews;
+        
+        // Purple gradient based on intensity
+        const r = Math.floor(107 + (255 - 107) * (1 - intensity));
+        const g = Math.floor(58 + (255 - 58) * (1 - intensity));
+        const b = Math.floor(138 + (255 - 138) * (1 - intensity));
+        
+        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        ctx.fillRect(60 + hour * cellWidth, 30 + day * cellHeight, cellWidth - 1, cellHeight - 1);
+        
+        // Add text for significant values
+        if (views > 0) {
+          ctx.fillStyle = intensity > 0.5 ? '#fff' : '#6B3A8A';
+          ctx.font = 'bold 10px Inter';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(views, 60 + hour * cellWidth + cellWidth / 2, 30 + day * cellHeight + cellHeight / 2);
+        }
+      }
+    }
+
+    // Y-axis labels (days)
+    ctx.fillStyle = '#6B3A8A';
+    ctx.font = 'bold 11px Inter';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    days.forEach((day, i) => {
+      ctx.fillText(day, 50, 30 + i * cellHeight + cellHeight / 2);
+    });
+
+    // X-axis labels (hours)
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.font = '10px Inter';
+    for (let h = 0; h < 24; h += 3) {
+      ctx.fillText(h + ':00', 60 + h * cellWidth + cellWidth / 2, 10);
+    }
+  }
+
+  function renderActivityFeed(activity) {
+    if (!els.activityFeed) return;
+    els.activityFeed.innerHTML = '';
+
+    if (!activity || activity.length === 0) {
+      els.activityFeed.innerHTML = '<div style="text-align:center;padding:40px;color:#6B3A8A;">No recent activity</div>';
+      return;
+    }
+
+    activity.forEach(item => {
+      const div = document.createElement('div');
+      div.style.cssText = 'background:#fff;padding:10px 12px;margin-bottom:8px;border-radius:6px;border-left:3px solid #6B3A8A;font-size:0.85rem;';
+      
+      const time = new Date(item.occurred_at).toLocaleString();
+      const icon = item.event_name === 'link_click' ? '🔗' : '👁️';
+      const action = item.event_name === 'link_click' ? 'clicked' : 'viewed';
+      const target = item.event_name === 'link_click' ? (item.label || item.link_id || 'link') : item.page_path;
+      const location = item.city && item.country ? `${item.city}, ${item.country}` : (item.country || 'Unknown');
+      const device = item.device || 'Unknown';
+      const browser = item.browser || '';
+      
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:start;">
+          <div style="flex:1;">
+            <strong style="color:#6B3A8A;">${icon} ${action}</strong> <span style="color:#0f1720;">${target}</span>
+            <div style="color:#666;font-size:0.8rem;margin-top:4px;">
+              📍 ${location} • 📱 ${device} ${browser ? `• ${browser}` : ''}
+            </div>
+          </div>
+          <div style="color:#999;font-size:0.75rem;white-space:nowrap;margin-left:12px;">${time}</div>
+        </div>
+      `;
+      
+      els.activityFeed.appendChild(div);
+    });
+  }
+
   async function loadData(){
     els.load.classList.add('loading');
     try {
@@ -379,12 +485,15 @@
       renderKPIs(summary.totals || {});
       renderTable(els.linksTbody, summary.top_links || [], ['label', 'clicks', 'uniques']);
       renderTable(els.refTbody, summary.top_referrers || [], ['referrer', 'pageviews']);
+      renderTable(els.utmTbody, summary.utm_campaigns || [], ['utm_source', 'utm_medium', 'utm_campaign', 'pageviews', 'clicks', 'uniques']);
       renderTable(els.countriesTbody, summary.top_countries || [], ['country', 'pageviews', 'clicks', 'uniques']);
       renderTable(els.devicesTbody, summary.devices || [], ['device', 'pageviews', 'uniques']);
       renderTable(els.osTbody, summary.operating_systems || [], ['os', 'pageviews', 'uniques']);
       renderTable(els.browsersTbody, summary.browsers || [], ['browser', 'pageviews', 'uniques']);
       renderMap(summary.locations || []);
       renderChart(summary.timeseries || []);
+      renderHeatmap(summary.peak_hours || []);
+      renderActivityFeed(summary.recent_activity || []);
 
       els.lastUpdated.textContent = new Date().toLocaleTimeString();
       showAlert('✓ Data loaded successfully', 'success');
@@ -458,6 +567,13 @@
     lines.push(`Browser,Pageviews,Uniques`);
     (lastData.browsers || []).forEach(row => {
       lines.push(`"${row.browser || 'Unknown'}",${row.pageviews || 0},${row.uniques || 0}`);
+    });
+    lines.push('');
+
+    lines.push('UTM CAMPAIGNS');
+    lines.push(`Source,Medium,Campaign,Pageviews,Clicks,Uniques`);
+    (lastData.utm_campaigns || []).forEach(row => {
+      lines.push(`"${row.utm_source || ''}","${row.utm_medium || ''}","${row.utm_campaign || ''}",${row.pageviews || 0},${row.clicks || 0},${row.uniques || 0}`);
     });
     lines.push('');
 
