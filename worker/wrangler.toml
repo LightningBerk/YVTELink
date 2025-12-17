@@ -10,3 +10,5 @@ d1_databases = [
 ALLOWED_ORIGIN = "https://yvette-delarue.com"
 
 # ADMIN_TOKEN is set via `wrangler secret put ADMIN_TOKEN`
+# ADMIN_PASSWORD is set via `wrangler secret put ADMIN_PASSWORD`
+# This is the password used to log into the analytics dashboard

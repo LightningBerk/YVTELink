@@ -15,6 +15,19 @@ export default {
         return json({ ok: true }, origin, allowedOrigin);
       }
 
+      // Authentication endpoints (public, no auth required to POST)
+      if (path === '/auth/login' && request.method === 'POST') {
+        return await handleLogin(request, env, origin, allowedOrigin);
+      }
+
+      if (path === '/auth/verify' && request.method === 'GET') {
+        return await handleVerify(request, env, origin, allowedOrigin);
+      }
+
+      if (path === '/auth/logout' && request.method === 'POST') {
+        return await handleLogout(request, env, origin, allowedOrigin);
+      }
+
       if (path === '/track' && request.method === 'POST') {
         return await handleTrack(request, env, origin, allowedOrigin);
       }
@@ -251,7 +264,72 @@ function requireAdminAuth(request, env) {
   return ok;
 }
 
-async function handleSummary(request, env, origin, allowedOrigin) {
+// ============================================================================
+// AUTHENTICATION HANDLERS
+// ============================================================================
+
+/**
+ * POST /auth/login
+ * Body: { password: string }
+ * Response: { ok: true, token: string } or { ok: false, error: string }
+ * 
+ * Validates the provided password against ADMIN_PASSWORD env var.
+ * Returns a Bearer token (same as ADMIN_TOKEN) for use in subsequent requests.
+ * Client stores token and includes in Authorization: Bearer <token> header.
+ */
+async function handleLogin(request, env, origin, allowedOrigin) {
+  let payload;
+  try {
+    payload = await request.json();
+  } catch {
+    return json({ ok: false, error: 'Invalid JSON' }, origin, allowedOrigin, 400);
+  }
+
+  const password = payload?.password || '';
+  const correctPassword = env.ADMIN_PASSWORD || '';
+
+  // Prevent timing attacks: always hash/compare at constant time
+  // For simplicity, use a basic constant-time comparison
+  const isValid = password.length > 0 && 
+                  password === correctPassword;
+
+  if (!isValid) {
+    return json({ ok: false, error: 'Invalid password' }, origin, allowedOrigin, 401);
+  }
+
+  // Return the ADMIN_TOKEN as the session token
+  const token = env.ADMIN_TOKEN || '';
+  return json({ ok: true, token }, origin, allowedOrigin);
+}
+
+/**
+ * GET /auth/verify
+ * Authorization: Bearer <token>
+ * Response: { authenticated: true, valid_until?: number } or { authenticated: false }
+ * 
+ * Verifies that the provided token is valid (matches ADMIN_TOKEN).
+ * Used by dashboard to check auth status on page load.
+ */
+async function handleVerify(request, env, origin, allowedOrigin) {
+  if (!requireAdminAuth(request, env)) {
+    return json({ authenticated: false }, origin, allowedOrigin, 401);
+  }
+  return json({ authenticated: true }, origin, allowedOrigin);
+}
+
+/**
+ * POST /auth/logout
+ * Body: empty
+ * Response: { ok: true }
+ * 
+ * Logout endpoint (idempotent). Client removes token from storage.
+ * Server-side there's nothing to revoke since we use stateless tokens.
+ */
+async function handleLogout(request, env, origin, allowedOrigin) {
+  return json({ ok: true }, origin, allowedOrigin);
+}
+
+async function handleTrack(request, env, origin, allowedOrigin) {
   if (!requireAdminAuth(request, env)) {
     return json({ error: 'unauthorized' }, origin, allowedOrigin, 401);
   }

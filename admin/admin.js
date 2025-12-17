@@ -2,8 +2,98 @@
   const cfg = window.ANALYTICS_CONFIG || {};
   const API_BASE = (cfg.ANALYTICS_API_BASE || '').replace(/\/$/, '');
 
+  // =========================================================================
+  // AUTH GUARD: Check if user is authenticated on page load
+  // =========================================================================
+  let authToken = null;
+
+  async function checkAuth() {
+    // Try to get token from sessionStorage first (freshly logged in)
+    let token = sessionStorage.getItem('auth_token');
+    
+    // Fallback to localStorage backup if session cleared
+    if (!token) {
+      token = localStorage.getItem('auth_token_backup');
+    }
+
+    if (!token) {
+      // No token found, redirect to login
+      // Save the current URL so we can return after login
+      sessionStorage.setItem('return_to', window.location.href);
+      window.location.href = '/login.html';
+      return false;
+    }
+
+    // Verify token is still valid with backend
+    try {
+      const res = await fetch(`${API_BASE}/auth/verify`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!res.ok) {
+        throw new Error('Token invalid');
+      }
+
+      const data = await res.json();
+      if (!data.authenticated) {
+        throw new Error('Not authenticated');
+      }
+
+      // Token is valid, store for use
+      authToken = token;
+      return true;
+    } catch (err) {
+      // Token is invalid, clear storage and redirect to login
+      sessionStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_token_backup');
+      sessionStorage.setItem('return_to', window.location.href);
+      window.location.href = '/login.html';
+      return false;
+    }
+  }
+
+  // Run auth check immediately on page load
+  checkAuth().then(authenticated => {
+    if (!authenticated) return;
+
+    // If we reach here, user is authenticated
+    initDashboard();
+  });
+
+  // =========================================================================
+  // DASHBOARD INITIALIZATION
+  // =========================================================================
+  function initDashboard() {
+    // Show user info and initialize UI
+    const userInfo = document.getElementById('user-info');
+    if (userInfo) userInfo.style.display = 'flex';
+    
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+
+    // Continue with normal initialization
+    loadToken();
+    onRangeChange();
+  }
+
+  async function handleLogout(e) {
+    e.preventDefault();
+    try {
+      // Call logout endpoint (optional, for server-side cleanup)
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      }).catch(() => {}); // Ignore errors on logout
+    } finally {
+      // Clear tokens and redirect to login
+      sessionStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_token_backup');
+      window.location.href = '/login.html';
+    }
+  }
+
   const els = {
-    token: document.getElementById('token'),
     range: document.getElementById('range'),
     start: document.getElementById('start'),
     end: document.getElementById('end'),
@@ -35,14 +125,6 @@
   let map = null;
   let markerLayer = null;
 
-  function saveToken(){ 
-    sessionStorage.setItem('admin_token', els.token.value || ''); 
-  }
-
-  function loadToken(){ 
-    els.token.value = sessionStorage.getItem('admin_token') || ''; 
-  }
-
   function showAlert(msg, type = 'error') {
     els.alert.innerHTML = `<div class="alert ${type}">${msg}</div>`;
     els.alert.style.display = 'block';
@@ -64,7 +146,7 @@
   }
 
   async function apiGet(path, params = {}){
-    const token = sessionStorage.getItem('admin_token') || '';
+    const token = authToken;
     const url = new URL(API_BASE + path);
     Object.entries(params).forEach(([k,v])=>{ if(v!=null) url.searchParams.set(k, v); });
     const res = await fetch(url.toString(), {
@@ -72,6 +154,13 @@
       mode: 'cors'
     });
     if (!res.ok) {
+      if (res.status === 401) {
+        // Token expired or invalid, redirect to login
+        sessionStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_token_backup');
+        sessionStorage.setItem('return_to', window.location.href);
+        window.location.href = '/login.html';
+      }
       updateStatus(false);
       throw new Error('API error ' + res.status);
     }
@@ -592,8 +681,8 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    loadToken();
-    onRangeChange();
+    // Auth check and dashboard init already happened above
+    // This is just for additional event listener setup
   });
 
   els.range.addEventListener('change', onRangeChange);
