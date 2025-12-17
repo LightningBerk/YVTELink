@@ -248,6 +248,19 @@ async function handleSummary(request, env, origin, allowedOrigin) {
     LIMIT 15;
   `;
 
+  const locationsSql = `
+    SELECT latitude, longitude, city, country,
+           SUM(CASE WHEN event_name='page_view' AND is_bot=0 THEN 1 ELSE 0 END) AS pageviews,
+           COUNT(DISTINCT CASE WHEN is_bot=0 THEN visitor_id END) AS uniques
+    FROM events
+    WHERE occurred_at BETWEEN ? AND ? 
+      AND latitude IS NOT NULL 
+      AND longitude IS NOT NULL
+    GROUP BY latitude, longitude, city, country
+    ORDER BY pageviews DESC
+    LIMIT 100;
+  `;
+
   const timeseriesSql = `
     SELECT strftime('%Y-%m-%d', datetime(occurred_at/1000, 'unixepoch')) AS day,
            SUM(CASE WHEN event_name='page_view' AND is_bot=0 THEN 1 ELSE 0 END) AS pageviews,
@@ -262,6 +275,7 @@ async function handleSummary(request, env, origin, allowedOrigin) {
   const topLinks = await env.DB.prepare(topLinksSql).bind(startMs, endMs).all();
   const referrers = await env.DB.prepare(referrersSql).bind(startMs, endMs).all();
   const countries = await env.DB.prepare(countriesSql).bind(startMs, endMs).all();
+  const locations = await env.DB.prepare(locationsSql).bind(startMs, endMs).all();
   const series = await env.DB.prepare(timeseriesSql).bind(startMs, endMs).all();
 
   const pageviews = totals?.pageviews || 0;
@@ -274,6 +288,7 @@ async function handleSummary(request, env, origin, allowedOrigin) {
     top_links: topLinks?.results || [],
     top_referrers: referrers?.results || [],
     top_countries: countries?.results || [],
+    locations: locations?.results || [],
     timeseries: series?.results || []
   }, origin, allowedOrigin);
 }

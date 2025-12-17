@@ -21,10 +21,13 @@
     refTbody: document.querySelector('#referrers tbody'),
     countriesTbody: document.querySelector('#countries tbody'),
     dateStartGroup: document.getElementById('date-start-group'),
-    dateEndGroup: document.getElementById('date-end-group')
+    dateEndGroup: document.getElementById('date-end-group'),
+    map: document.getElementById('map')
   };
 
   let lastData = null;
+  let map = null;
+  let markerLayer = null;
 
   function saveToken(){ 
     sessionStorage.setItem('admin_token', els.token.value || ''); 
@@ -283,6 +286,75 @@
     ctx.fillText('Clicks', w - 180, margin + 22);
   }
 
+  function initMap() {
+    if (!map && typeof L !== 'undefined') {
+      map = L.map(els.map).setView([20, 0], 2);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 18
+      }).addTo(map);
+      markerLayer = L.layerGroup().addTo(map);
+    }
+  }
+
+  function renderMap(locations) {
+    if (!map) initMap();
+    if (!markerLayer) return;
+
+    markerLayer.clearLayers();
+
+    if (!locations || locations.length === 0) {
+      return;
+    }
+
+    const maxPageviews = Math.max(...locations.map(l => l.pageviews || 0), 1);
+
+    locations.forEach(loc => {
+      const lat = parseFloat(loc.latitude);
+      const lon = parseFloat(loc.longitude);
+      if (isNaN(lat) || isNaN(lon)) return;
+
+      const pageviews = loc.pageviews || 0;
+      const uniques = loc.uniques || 0;
+      const city = loc.city || 'Unknown';
+      const country = loc.country || '';
+
+      // Size based on pageviews (5-25px radius)
+      const radius = 5 + (pageviews / maxPageviews) * 20;
+
+      const circle = L.circleMarker([lat, lon], {
+        radius: radius,
+        fillColor: '#6B3A8A',
+        color: '#fff',
+        weight: 2,
+        opacity: 0.8,
+        fillOpacity: 0.6
+      });
+
+      circle.bindPopup(`
+        <div style="font-family: Inter, sans-serif;">
+          <strong style="color: #6B3A8A;">${city}, ${country}</strong><br>
+          <span style="font-size: 0.9em;">
+            ${pageviews} pageview${pageviews !== 1 ? 's' : ''}<br>
+            ${uniques} unique visitor${uniques !== 1 ? 's' : ''}
+          </span>
+        </div>
+      `);
+
+      circle.addTo(markerLayer);
+    });
+
+    // Auto-fit bounds if there are locations
+    if (locations.length > 0) {
+      const bounds = locations
+        .filter(l => !isNaN(parseFloat(l.latitude)) && !isNaN(parseFloat(l.longitude)))
+        .map(l => [parseFloat(l.latitude), parseFloat(l.longitude)]);
+      if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 5 });
+      }
+    }
+  }
+
   async function loadData(){
     els.load.classList.add('loading');
     try {
@@ -305,6 +377,7 @@
       renderTable(els.linksTbody, summary.top_links || [], ['label', 'clicks', 'uniques']);
       renderTable(els.refTbody, summary.top_referrers || [], ['referrer', 'pageviews']);
       renderTable(els.countriesTbody, summary.top_countries || [], ['country', 'pageviews', 'clicks', 'uniques']);
+      renderMap(summary.locations || []);
       renderChart(summary.timeseries || []);
 
       els.lastUpdated.textContent = new Date().toLocaleTimeString();
