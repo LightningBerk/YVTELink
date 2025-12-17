@@ -554,7 +554,6 @@
   async function loadData(){
     els.load.classList.add('loading');
     try {
-      saveToken();
       const range = els.range.value;
       const params = { range };
       if (range === 'custom') {
