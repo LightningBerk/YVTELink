@@ -432,13 +432,13 @@
     els.activityFeed.innerHTML = '';
 
     if (!activity || activity.length === 0) {
-      els.activityFeed.innerHTML = '<div style="text-align:center;padding:40px;color:#6B3A8A;">No recent activity</div>';
+      els.activityFeed.innerHTML = '<div class="empty-state">No recent activity</div>';
       return;
     }
 
     activity.forEach(item => {
       const div = document.createElement('div');
-      div.style.cssText = 'background:#fff;padding:10px 12px;margin-bottom:8px;border-radius:6px;border-left:3px solid #6B3A8A;font-size:0.85rem;';
+      div.className = 'activity-item';
       
       const time = new Date(item.occurred_at).toLocaleString();
       const icon = item.event_name === 'link_click' ? '🔗' : '👁️';
@@ -449,15 +449,13 @@
       const browser = item.browser || '';
       
       div.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:start;">
-          <div style="flex:1;">
-            <strong style="color:#6B3A8A;">${icon} ${action}</strong> <span style="color:#0f1720;">${target}</span>
-            <div style="color:#666;font-size:0.8rem;margin-top:4px;">
-              📍 ${location} • 📱 ${device} ${browser ? `• ${browser}` : ''}
-            </div>
+        <div style="flex:1;">
+          <div><strong>${icon} ${action}</strong> <span>${target}</span></div>
+          <div style="color:var(--color-text-muted);font-size:var(--text-xs);margin-top:4px;">
+            📍 ${location} • 📱 ${device} ${browser ? `• ${browser}` : ''}
           </div>
-          <div style="color:#999;font-size:0.75rem;white-space:nowrap;margin-left:12px;">${time}</div>
         </div>
+        <div style="color:var(--color-text-muted);font-size:var(--text-xs);white-space:nowrap;">${time}</div>
       `;
       
       els.activityFeed.appendChild(div);
