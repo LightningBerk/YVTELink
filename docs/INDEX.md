@@ -7,9 +7,10 @@ Welcome to the YVTELink documentation. This index will help you find what you're
 ### For Everyone
 - **[README.md](../README.md)** — Project overview, features, quick start, and tech stack
 - **[DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md)** — CSS design tokens, component styles, responsive breakpoints
+- **[AUDIT.md](../AUDIT.md)** — Site audit status, implementation progress, and roadmap
 
 ### Getting Started
-- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** — Step-by-step installation and deployment guide (12 steps)
+- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** — Step-by-step installation and deployment guide
 - **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** — Essential commands and common tasks
 
 ### Authentication

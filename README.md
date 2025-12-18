@@ -98,9 +98,11 @@ cd worker && wrangler deploy
 ## 📚 Documentation
 
 ### Core Documentation
+- **[AUDIT.md](AUDIT.md)** — Current audit status and implementation guide
+- **[DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)** — CSS tokens and component styles
+- **[SECURITY.md](SECURITY.md)** — Security policy and implementation
 - **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** — System design and component overview
 - **[SETUP_GUIDE.md](docs/SETUP_GUIDE.md)** — Detailed deployment instructions
-- **[DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)** — CSS tokens and component styles
 - **[API.md](docs/API.md)** — Analytics API endpoints and data models
 - **[ANALYTICS.md](docs/ANALYTICS.md)** — Tracking events and implementation details
 

@@ -28,6 +28,32 @@
       padding: 20px;
     }
 
+    /* Accessibility: Focus indicators and skip link */
+    :focus-visible {
+      outline: 3px solid #667eea;
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
+    .skip-to-content {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      background: #667eea;
+      color: white;
+      padding: 8px 16px;
+      text-decoration: none;
+      z-index: 100;
+      border-radius: 0 0 4px 0;
+      font-weight: 600;
+      font-size: 0.875rem;
+      transition: top 0.2s ease;
+    }
+
+    .skip-to-content:focus {
+      top: 0;
+    }
+
     .login-container {
       width: 100%;
       max-width: 420px;
@@ -357,15 +383,18 @@
   </style>
 </head>
 <body>
-  <div class="login-container">
-    <div class="login-card">
-      <div class="login-header">
-        <span class="login-icon">🔐</span>
-        <h1 class="login-title">Analytics Login</h1>
-        <p class="login-subtitle">Enter your password to access the dashboard</p>
-      </div>
+  <a href="#main-content" class="skip-to-content">Skip to main content</a>
+  
+  <main id="main-content">
+    <div class="login-container">
+      <div class="login-card">
+        <div class="login-header">
+          <span class="login-icon">🔐</span>
+          <h1 class="login-title">Analytics Login</h1>
+          <p class="login-subtitle">Enter your password to access the dashboard</p>
+        </div>
 
-      <div id="status" class="login-status" role="alert" aria-live="polite"></div>
+        <div id="status" class="login-status" role="alert" aria-live="polite"></div>
 
       <form id="loginForm" class="login-form" novalidate>
         <div class="form-group">
@@ -404,7 +433,8 @@
         <p style="margin-top: 8px;">If you don't have a password, contact the administrator.</p>
       </div>
     </div>
-  </div>
+    </div>
+  </main>
 
   <script src="../js/lib/config.js"></script>
   <script>

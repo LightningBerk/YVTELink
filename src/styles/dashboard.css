@@ -6,8 +6,8 @@
   --color-primary: #6B3A8A;
   --color-primary-light: #8B4BA8;
   --color-primary-dark: #4F2967;
-  --color-accent: #F6D1DD;
-  --color-accent-dark: #E5B8C7;
+  --color-accent: #E5B8C7; /* Updated to WCAG AA contrast */
+  --color-accent-dark: #D39FB5;
   
   --color-bg-base: #F8F9FB;
   --color-bg-surface: #FFFFFF;
@@ -88,6 +88,18 @@ body.admin {
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Accessibility: Focus indicators for keyboard navigation */
+:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+button:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 /* ===================================

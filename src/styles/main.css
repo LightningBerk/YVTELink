@@ -3,7 +3,7 @@
 	/* Center-channel focused layout and soft floral theme */
 	--bg-1: #FBF8F7; /* soft off-white */
 	--bg-2: #F8F4F6; /* warmer off-white / pale pink */
-	--accent-pink: #F6D1DD; /* cherry blossom pink */
+	--accent-pink: #E5B8C7; /* cherry blossom pink - updated for WCAG AA contrast */
 	--accent-purple: #6B3A8A; /* rich purple accent */
 	--text: #0f1720; /* dark charcoal for high contrast */
 	--muted: rgba(15,23,32,0.55);
@@ -31,11 +31,43 @@ body{
 }
 body > *:first-child{margin-top:0 !important}
 
+/* Accessibility: Focus indicators for keyboard navigation */
+:focus-visible{
+	outline: 3px solid var(--accent-purple);
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+
+button:focus-visible{
+	outline: 3px solid var(--accent-purple);
+	outline-offset: 2px;
+}
+
 .container{
 	width:100%;
 	max-width:var(--max-width);
 	margin:0 auto;
 	padding:0 var(--space-2);
+}
+
+/* Accessibility: Skip to main content link */
+.skip-to-content{
+	position: absolute;
+	top: -40px;
+	left: 0;
+	background: var(--accent-purple);
+	color: white;
+	padding: 8px 16px;
+	text-decoration: none;
+	z-index: 100;
+	border-radius: 0 0 4px 0;
+	font-weight: 600;
+	font-size: 0.875rem;
+	transition: top 0.2s ease;
+}
+
+.skip-to-content:focus{
+	top: 0;
 }
 
 /* Utility */
@@ -68,8 +100,31 @@ a{color:inherit;text-decoration:none}
 .link-card-content h2,.link-card-content h3{margin:0;font-family:'Outfit',sans-serif;font-weight:700;letter-spacing:0.5px;font-size:clamp(1.8rem,4vw,2.6rem)}
 .link-card-subtitle{margin:0;color:rgba(255,255,255,0.85);font-size:clamp(1rem,2.4vw,1.12rem);max-width:640px}
 .link-card-eyebrow{letter-spacing:2px;text-transform:uppercase;font-size:0.85rem;font-weight:600;margin:0;color:rgba(255,255,255,0.82)}
-.link-card-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:7px;border:1px solid rgba(255,255,255,0.65);background:rgba(255,255,255,0.14);color:#fff;font-weight:700;font-size:1rem;backdrop-filter:blur(4px);transition:transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease}
+.link-card-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:7px;border:1px solid rgba(255,255,255,0.65);background:rgba(255,255,255,0.14);color:#fff;font-weight:700;font-size:1rem;backdrop-filter:blur(4px);transition:transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;cursor:pointer}
 .link-card-button:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,0.18);background:rgba(255,255,255,0.2)}
+.link-card-button:active{transform:translateY(0);box-shadow:0 4px 8px rgba(0,0,0,0.1)}
+.link-card-button:focus-visible{outline:3px solid rgba(255,255,255,0.8);outline-offset:2px}
+
+/* Button component styles */
+.btn{
+	cursor: pointer;
+}
+
+.btn:hover{
+	transform: translateY(-2px);
+	box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active{
+	transform: translateY(0);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn:focus-visible{
+	outline: 3px solid var(--accent-purple);
+	outline-offset: 2px;
+}
+
 .link-card:hover .link-card-background{transform:scale(1.05);filter:saturate(1.1)}
 .link-card:hover::before{opacity:1}
 .cta-arrow{display:none;position:absolute;width:82px;height:82px;pointer-events:none;filter:drop-shadow(0 6px 16px rgba(0,0,0,0.18));transform-origin:center}
@@ -137,6 +192,7 @@ a{color:inherit;text-decoration:none}
 .footer-links{display:flex;gap:16px;margin-top:4px}
 .footer-links a{color:var(--accent-purple);font-size:0.9rem;font-weight:500;transition:all 0.2s ease}
 .footer-links a:hover{color:var(--accent-pink);transform:translateY(-2px)}
+.footer-links a:focus-visible{outline:3px solid var(--accent-purple);outline-offset:2px}
 @media (min-width:900px){
 	body{padding:var(--space-6) 0}
 	.footer-inner{flex-direction:row;justify-content:space-between;width:100%;align-items:center}
