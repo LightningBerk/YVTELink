@@ -125,18 +125,8 @@ Comprehensive senior engineer + UX designer audit identified **96+ recommendatio
 - Updated `--color-accent-dark` to `#D39FB5`
 - Added `:focus-visible` styles for keyboard navigation
 
-### HTML Updates
-
-**index.html:**
-- Added skip-to-content link at top of body
-- Changed main id from `#main` to `#main-content`
-
-**src/pages/dashboard.html:**
-- Added skip-to-content link at top of body
-- Wrapped admin container in `<main id="main-content">`
-
-**src/pages/login.html:**
-- Added skip-to-content link at top of body (TODO if needed)
+### Note on Skip-to-Content Feature
+- Initially added but removed per user feedback (not needed for this use case)
 
 ---
 
