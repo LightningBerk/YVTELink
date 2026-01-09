@@ -76,8 +76,6 @@ const BOT_UA_SUBSTRINGS = [
 ];
 
 function parseDeviceInfo(ua) {
-  const lower = ua.toLowerCase();
-  
   // Device type
   let device = 'Desktop';
   if (/(iphone|ipod)/i.test(ua)) device = 'iPhone';
@@ -219,8 +217,8 @@ async function handleTrack(request, env, origin, allowedOrigin) {
   const region = geo.region || null;
   const city = geo.city || null;
   const timezone = geo.timezone || null;
-  const latitude = geo.latitude ? parseFloat(geo.latitude) : null;
-  const longitude = geo.longitude ? parseFloat(geo.longitude) : null;
+  const latitude = geo.latitude ? Number.parseFloat(geo.latitude) : null;
+  const longitude = geo.longitude ? Number.parseFloat(geo.longitude) : null;
 
   // Schema validation
   const allowedEvents = new Set(['page_view', 'link_click']);

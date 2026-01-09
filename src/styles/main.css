@@ -80,7 +80,7 @@ a{color:inherit;text-decoration:none}
 .link-card-content h2,.link-card-content h3{margin:0;font-family:'Outfit',sans-serif;font-weight:700;letter-spacing:0.5px;font-size:clamp(1.8rem,4vw,2.6rem)}
 .link-card-subtitle{margin:0;color:rgba(255,255,255,0.85);font-size:clamp(1rem,2.4vw,1.12rem);max-width:640px}
 .link-card-eyebrow{letter-spacing:2px;text-transform:uppercase;font-size:0.85rem;font-weight:600;margin:0;color:rgba(255,255,255,0.82)}
-.link-card-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:7px;border:1px solid rgba(255,255,255,0.65);background:rgba(255,255,255,0.14);color:#fff;font-weight:700;font-size:1rem;backdrop-filter:blur(4px);transition:transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;cursor:pointer}
+.link-card-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:7px;border:2px solid rgba(255,255,255,0.8);background:rgba(255,255,255,0.12);color:#fff;font-weight:700;font-size:1rem;backdrop-filter:blur(4px);transition:transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;cursor:pointer}
 .link-card-button:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,0.18);background:rgba(255,255,255,0.2)}
 .link-card-button:active{transform:translateY(0);box-shadow:0 4px 8px rgba(0,0,0,0.1)}
 .link-card-button:focus-visible{outline:3px solid rgba(255,255,255,0.8);outline-offset:2px}
@@ -178,8 +178,6 @@ a{color:inherit;text-decoration:none}
 	.footer-inner{flex-direction:row;justify-content:space-between;width:100%;align-items:center}
 }
 
-html,body{overflow-x:hidden}
-
 .parallax{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;z-index:0}
 .parallax-layer{position:absolute;left:50%;top:-6vh;transform:translate3d(-50%,0,0);will-change:transform,opacity;opacity:0.95;max-width:1800px;width:140%;height:auto}
 .parallax.svg-hidden svg{display:none}
@@ -257,66 +255,6 @@ html,body{overflow-x:hidden}
 	75%{background-position:18.2% 83.8%,48.2% 21.8%,82.2% 43.8%,25.2% 14.8%,70.2% 74.8%}
 }
 
-.parallax-mid-css{
-	position:fixed;inset:0;z-index:0;pointer-events:none;
-	background-image:
-		radial-gradient(circle at 12% 72%, rgba(246,209,221,0.35) 0 11%, transparent 16%),
-		radial-gradient(circle at 40% 44%, rgba(255,182,203,0.32) 0 16%, transparent 20%),
-		radial-gradient(circle at 72% 62%, rgba(107,58,138,0.28) 0 16%, transparent 20%),
-		radial-gradient(circle at 20% 30%, rgba(246,209,221,0.3) 0 13%, transparent 18%),
-		radial-gradient(circle at 60% 8%, rgba(255,182,203,0.27) 0 12%, transparent 17%);
-	background-repeat:no-repeat;
-	background-size:clamp(190px,42vw,950px) clamp(150px,33.5vw,750px),
-	             clamp(170px,38vw,850px) clamp(135px,30vw,675px),
-	             clamp(180px,40vw,900px) clamp(140px,31.5vw,700px),
-	             clamp(160px,36vw,800px) clamp(120px,27vw,600px),
-	             clamp(150px,35vw,750px) clamp(110px,24.5vw,550px);
-	background-position:
-		12% calc(72% + var(--scroll-mid-y, 0px)),
-		40% calc(44% + var(--scroll-mid-y, 0px) * 0.4),
-		72% calc(62% + var(--scroll-mid-y, 0px) * 0.35),
-		20% calc(30% + var(--scroll-mid-y, 0px) * 0.38),
-		60% calc(8% + var(--scroll-mid-y, 0px) * 0.42);
-	animation:
-		drift-bloom-3 12s ease-in-out infinite,
-		drift-bloom-1 14s ease-in-out infinite 2s,
-		drift-bloom-4 16s ease-in-out infinite 3s,
-		drift-bloom-2 15s ease-in-out infinite 1s,
-		drift-bloom-5 17s ease-in-out infinite 4s;
-	opacity:0.92;z-index:0;filter: blur(10px);
-	background-attachment: fixed;
-}
-
-.parallax::after{
-	content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-	background-image:
-		radial-gradient(circle at 18% 84%, rgba(255,235,241,0.4) 0 13%, transparent 18%),
-		radial-gradient(circle at 48% 22%, rgba(246,209,221,0.38) 0 18%, transparent 24%),
-		radial-gradient(circle at 82% 44%, rgba(255,182,203,0.35) 0 11%, transparent 16%),
-		radial-gradient(circle at 25% 15%, rgba(255,182,203,0.36) 0 14%, transparent 19%),
-		radial-gradient(circle at 70% 75%, rgba(246,209,221,0.37) 0 15%, transparent 20%);
-	background-repeat:no-repeat;
-	background-size:clamp(170px,38vw,850px) clamp(130px,29vw,650px),
-	             clamp(150px,33vw,750px) clamp(120px,27vw,600px),
-	             clamp(130px,30vw,650px) clamp(100px,22.5vw,500px),
-	             clamp(140px,32vw,700px) clamp(105px,23.5vw,525px),
-	             clamp(160px,36vw,800px) clamp(120px,27vw,600px);
-	background-position:
-		18% calc(84% + var(--scroll-front-y, 0px)),
-		48% calc(22% + var(--scroll-front-y, 0px) * 0.5),
-		82% calc(44% + var(--scroll-front-y, 0px) * 0.45),
-		25% calc(15% + var(--scroll-front-y, 0px) * 0.48),
-		70% calc(75% + var(--scroll-front-y, 0px) * 0.52);
-	opacity:0.88;z-index:0;filter: blur(8px);
-	animation:
-		drift-bloom-2 10s ease-in-out infinite,
-		drift-bloom-4 12s ease-in-out infinite 1s,
-		drift-bloom-5 14s ease-in-out infinite 2s,
-		drift-bloom-1 11s ease-in-out infinite 3s,
-		drift-bloom-3 13s ease-in-out infinite 4s;
-	background-attachment: fixed;
-}
-
 /* Individual drift animations for each blossom with unique timings */
 @keyframes drift-bloom-1{
 	0%, 100%{background-position-y: 0}
@@ -372,14 +310,13 @@ header{margin:0;padding:0}
 /* Debug helper removed */
 
 /* DOM blossoms: visible, transform-animated elements for reliable drift + parallax */
-.blossoms{position:fixed;inset:0;pointer-events:none;z-index:0}
-.blossoms{transform:translate3d(0,var(--scroll-blossoms,0px),0);will-change:transform}
+.blossoms{position:fixed;inset:0;pointer-events:none;z-index:0;transform:translate3d(0,var(--scroll-blossoms,0px),0);will-change:transform}
 .blossom{position:fixed;border-radius:50%;background:radial-gradient(circle at 30% 30%, rgba(255,230,240,0.95), rgba(246,209,221,0.9));box-shadow:0 8px 22px rgba(107,58,138,0.06);filter:blur(0.6px);opacity:0.95;will-change:transform,opacity}
 
 /* size/position presets for different depth layers */
-.b-back{opacity:0.82;filter:blur(10px);}
-.b-mid{opacity:0.9;filter:blur(6px)}
-.b-front{opacity:0.98;filter:blur(2px)}
+.b-back{opacity:0.82;filter:blur(10px);animation: float-slow 18s ease-in-out infinite}
+.b-mid{opacity:0.9;filter:blur(6px);animation: float-mid 12s ease-in-out infinite}
+.b-front{opacity:0.98;filter:blur(2px);animation: float-fast 9s ease-in-out infinite}
 
 /* individual blossoms positions and sizes (responsive with clamp) */
 .b1{left:6%;top:8%;width:clamp(110px,22vw,400px);height:clamp(90px,18vw,320px);}
@@ -394,11 +331,6 @@ header{margin:0;padding:0}
 .b10{left:84%;top:64%;width:clamp(100px,20vw,360px);height:clamp(80px,16.5vw,300px);}
 .b11{left:52%;top:12%;width:clamp(60px,12.5vw,220px);height:clamp(46px,10.5vw,180px);}
 .b12{left:88%;top:24%;width:clamp(72px,14vw,260px);height:clamp(54px,11.5vw,200px);}
-
-/* subtle float animations (different durations/delays per depth) */
-.b-back{animation: float-slow 18s ease-in-out infinite}
-.b-mid{animation: float-mid 12s ease-in-out infinite}
-.b-front{animation: float-fast 9s ease-in-out infinite}
 
 @keyframes float-slow{0%{transform:translate3d(0,0,0) scale(1)}25%{transform:translate3d(-6px,-8px,0) scale(1.01)}50%{transform:translate3d(0,6px,0) scale(0.995)}75%{transform:translate3d(5px,-3px,0) scale(1.002)}100%{transform:translate3d(0,0,0) scale(1)}}
 @keyframes float-mid{0%{transform:translate3d(0,0,0) scale(1)}25%{transform:translate3d(-8px,-10px,0) scale(1.02)}50%{transform:translate3d(0,10px,0) scale(0.99)}75%{transform:translate3d(6px,-6px,0) scale(1.01)}100%{transform:translate3d(0,0,0) scale(1)}}

@@ -436,7 +436,7 @@
   <script>
     (() => {
       // Fallback to empty string if config not loaded - will show helpful error
-      const API_BASE = (window.ANALYTICS_CONFIG?.ANALYTICS_API_BASE || '').replace(/\/$/, '');
+      const API_BASE = (globalThis.ANALYTICS_CONFIG?.ANALYTICS_API_BASE || '').replace(/\/$/, '');
       
       // Check if API_BASE is configured
       if (!API_BASE) {
@@ -522,7 +522,7 @@
           showStatus('✓ Login successful! Redirecting...', 'success');
           setTimeout(() => {
             const returnTo = sessionStorage.getItem('return_to') || '/src/pages/dashboard.html';
-            window.location.href = returnTo;
+            globalThis.location.href = returnTo;
           }, 500);
         } catch (err) {
           showError(err.message || 'Network error');
@@ -579,7 +579,7 @@
           .then(data => {
             if (data.authenticated) {
               // Already logged in, redirect to dashboard
-              window.location.href = '/src/pages/dashboard.html';
+              globalThis.location.href = '/src/pages/dashboard.html';
             }
           })
           .catch(() => {

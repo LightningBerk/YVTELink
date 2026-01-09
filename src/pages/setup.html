@@ -551,7 +551,7 @@
   <script>
     (() => {
       // Fallback to empty string if config not loaded - will show helpful error
-      const API_BASE = (window.ANALYTICS_CONFIG?.ANALYTICS_API_BASE || '').replace(/\/$/, '');
+      const API_BASE = (globalThis.ANALYTICS_CONFIG?.ANALYTICS_API_BASE || '').replace(/\/$/, '');
       
       // Check if API_BASE is configured
       if (!API_BASE) {
@@ -671,7 +671,7 @@
           // Success! Show message and redirect to login
           showStatus('✓ Account created successfully! Redirecting to login...', 'success');
           setTimeout(() => {
-            window.location.href = '/src/pages/login.html';
+            globalThis.location.href = '/src/pages/login.html';
           }, 1500);
         } catch (err) {
           const message = err.message || 'Network error';

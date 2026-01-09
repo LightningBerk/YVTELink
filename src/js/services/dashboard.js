@@ -1,5 +1,5 @@
 (() => {
-  const cfg = window.ANALYTICS_CONFIG || {};
+  const cfg = globalThis.ANALYTICS_CONFIG || {};
   const API_BASE = (cfg.ANALYTICS_API_BASE || '').replace(/\/$/, '');
 
   // =========================================================================
@@ -19,8 +19,8 @@
     if (!token) {
       // No token found, redirect to login
       // Save the current URL so we can return after login
-      sessionStorage.setItem('return_to', window.location.href);
-      window.location.href = '/src/pages/login.html';
+      sessionStorage.setItem('return_to', globalThis.location.href);
+      globalThis.location.href = '/src/pages/login.html';
       return false;
     }
 
@@ -47,8 +47,8 @@
       // Token is invalid, clear storage and redirect to login
       sessionStorage.removeItem('auth_token');
       localStorage.removeItem('auth_token_backup');
-      sessionStorage.setItem('return_to', window.location.href);
-      window.location.href = '/src/pages/login.html';
+      sessionStorage.setItem('return_to', globalThis.location.href);
+      globalThis.location.href = '/src/pages/login.html';
       return false;
     }
   }
@@ -123,7 +123,7 @@
       // Clear tokens and redirect to login
       sessionStorage.removeItem('auth_token');
       localStorage.removeItem('auth_token_backup');
-      window.location.href = '/src/pages/login.html';
+      globalThis.location.href = '/src/pages/login.html';
     }
   }
 
@@ -194,8 +194,8 @@
         // Token expired or invalid, redirect to login
         sessionStorage.removeItem('auth_token');
         localStorage.removeItem('auth_token_backup');
-        sessionStorage.setItem('return_to', window.location.href);
-        window.location.href = '/src/pages/login.html';
+        sessionStorage.setItem('return_to', globalThis.location.href);
+        globalThis.location.href = '/src/pages/login.html';
       }
       updateStatus(false);
       throw new Error('API error ' + res.status);
@@ -441,9 +441,9 @@
     const maxPageviews = Math.max(...locations.map(l => l.pageviews || 0), 1);
 
     locations.forEach(loc => {
-      const lat = parseFloat(loc.latitude);
-      const lon = parseFloat(loc.longitude);
-      if (isNaN(lat) || isNaN(lon)) return;
+      const lat = Number.parseFloat(loc.latitude);
+      const lon = Number.parseFloat(loc.longitude);
+      if (Number.isNaN(lat) || Number.isNaN(lon)) return;
 
       const pageviews = loc.pageviews || 0;
       const uniques = loc.uniques || 0;
@@ -478,8 +478,8 @@
     // Auto-fit bounds if there are locations
     if (locations.length > 0) {
       const bounds = locations
-        .filter(l => !isNaN(parseFloat(l.latitude)) && !isNaN(parseFloat(l.longitude)))
-        .map(l => [parseFloat(l.latitude), parseFloat(l.longitude)]);
+        .filter(l => !Number.isNaN(Number.parseFloat(l.latitude)) && !Number.isNaN(Number.parseFloat(l.longitude)))
+        .map(l => [Number.parseFloat(l.latitude), Number.parseFloat(l.longitude)]);
       if (bounds.length > 0) {
         map.fitBounds(bounds, { padding: [50, 50], maxZoom: 5 });
       }
