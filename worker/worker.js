@@ -10,65 +10,67 @@ export default {
       return new Response(null, { headers: corsHeaders(origin, allowedOrigin) });
     }
 
-    const path = url.pathname.replace(/\/$/, '');
     try {
-      if (path === '/health') {
-        return json({ ok: true }, origin, allowedOrigin);
-      }
-
-      // Authentication endpoints - apply strict rate limiting and CSRF protection
-      if (path === '/auth/setup' && request.method === 'POST') {
-        if (authRateLimited(ip)) {
-          return json({ ok: false, error: 'Too many attempts. Please try again later.' }, origin, allowedOrigin, 429);
-        }
-        // SECURITY: CSRF protection - validate Origin header
-        if (!validateOrigin(origin, allowedOrigin)) {
-          return json({ ok: false, error: 'Invalid origin' }, origin, allowedOrigin, 403);
-        }
-        return await handleSetup(request, env, origin, allowedOrigin, ip);
-      }
-
-      if (path === '/auth/login' && request.method === 'POST') {
-        if (authRateLimited(ip)) {
-          return json({ ok: false, error: 'Too many attempts. Please try again later.' }, origin, allowedOrigin, 429);
-        }
-        // SECURITY: CSRF protection - validate Origin header
-        if (!validateOrigin(origin, allowedOrigin)) {
-          return json({ ok: false, error: 'Invalid origin' }, origin, allowedOrigin, 403);
-        }
-        return await handleLogin(request, env, origin, allowedOrigin, ip);
-      }
-
-      if (path === '/auth/verify' && request.method === 'GET') {
-        return await handleVerify(request, env, origin, allowedOrigin);
-      }
-
-      if (path === '/auth/logout' && request.method === 'POST') {
-        // SECURITY: CSRF protection - validate Origin header
-        if (!validateOrigin(origin, allowedOrigin)) {
-          return json({ ok: false, error: 'Invalid origin' }, origin, allowedOrigin, 403);
-        }
-        return await handleLogout(request, env, origin, allowedOrigin);
-      }
-
-      if (path === '/track' && request.method === 'POST') {
-        return await handleTrack(request, env, origin, allowedOrigin);
-      }
-
-      if (path === '/summary' && request.method === 'GET') {
-        return await handleSummary(request, env, origin, allowedOrigin);
-      }
-
-      if (path === '/links' && request.method === 'GET') {
-        return await handleLinks(request, env, origin, allowedOrigin);
-      }
-
-      return json({ error: 'Not found' }, origin, allowedOrigin, 404);
+      return await routeRequest(request, url, env, origin, allowedOrigin, ip);
     } catch (e) {
       return json({ error: 'Server error', detail: String(e) }, origin, allowedOrigin, 500);
     }
   }
 };
+
+async function routeRequest(request, url, env, origin, allowedOrigin, ip) {
+  const path = url.pathname.replace(/\/$/, '');
+  
+  if (path === '/health') {
+    return json({ ok: true }, origin, allowedOrigin);
+  }
+
+  // Authentication endpoints - apply strict rate limiting and CSRF protection
+  if (path === '/auth/setup' && request.method === 'POST') {
+    if (authRateLimited(ip)) {
+      return json({ ok: false, error: 'Too many attempts. Please try again later.' }, origin, allowedOrigin, 429);
+    }
+    if (!validateOrigin(origin, allowedOrigin)) {
+      return json({ ok: false, error: 'Invalid origin' }, origin, allowedOrigin, 403);
+    }
+    return await handleSetup(request, env, origin, allowedOrigin, ip);
+  }
+
+  if (path === '/auth/login' && request.method === 'POST') {
+    if (authRateLimited(ip)) {
+      return json({ ok: false, error: 'Too many attempts. Please try again later.' }, origin, allowedOrigin, 429);
+    }
+    if (!validateOrigin(origin, allowedOrigin)) {
+      return json({ ok: false, error: 'Invalid origin' }, origin, allowedOrigin, 403);
+    }
+    return await handleLogin(request, env, origin, allowedOrigin, ip);
+  }
+
+  if (path === '/auth/verify' && request.method === 'GET') {
+    return await handleVerify(request, env, origin, allowedOrigin);
+  }
+
+  if (path === '/auth/logout' && request.method === 'POST') {
+    if (!validateOrigin(origin, allowedOrigin)) {
+      return json({ ok: false, error: 'Invalid origin' }, origin, allowedOrigin, 403);
+    }
+    return await handleLogout(request, env, origin, allowedOrigin);
+  }
+
+  if (path === '/track' && request.method === 'POST') {
+    return await handleTrack(request, env, origin, allowedOrigin);
+  }
+
+  if (path === '/summary' && request.method === 'GET') {
+    return await handleSummary(request, env, origin, allowedOrigin);
+  }
+
+  if (path === '/links' && request.method === 'GET') {
+    return await handleLinks(request, env, origin, allowedOrigin);
+  }
+
+  return json({ error: 'Not found' }, origin, allowedOrigin, 404);
+}
 
 const BOT_UA_SUBSTRINGS = [
   'bot', 'crawl', 'spider', 'slurp', 'bingpreview', 'facebookexternalhit',
@@ -76,46 +78,53 @@ const BOT_UA_SUBSTRINGS = [
 ];
 
 function parseDeviceInfo(ua) {
-  // Device type
-  let device = 'Desktop';
-  if (/(iphone|ipod)/i.test(ua)) device = 'iPhone';
-  else if (/ipad/i.test(ua)) device = 'iPad';
-  else if (/android/i.test(ua) && /mobile/i.test(ua)) device = 'Android Phone';
-  else if (/android/i.test(ua)) device = 'Android Tablet';
-  else if (/(tablet|kindle|playbook|silk)/i.test(ua)) device = 'Tablet';
-  else if (/mobile/i.test(ua)) device = 'Mobile';
-  
-  // Operating System
-  let os = 'Unknown';
-  if (/windows nt 10/i.test(ua)) os = 'Windows 10/11';
-  else if (/windows nt 6.3/i.test(ua)) os = 'Windows 8.1';
-  else if (/windows nt 6.2/i.test(ua)) os = 'Windows 8';
-  else if (/windows nt 6.1/i.test(ua)) os = 'Windows 7';
-  else if (/windows/i.test(ua)) os = 'Windows';
-  else if (/iphone|ipad|ipod/i.test(ua)) {
+  return {
+    device: parseDevice(ua),
+    os: parseOS(ua),
+    browser: parseBrowser(ua)
+  };
+}
+
+function parseDevice(ua) {
+  if (/(iphone|ipod)/i.test(ua)) return 'iPhone';
+  if (/ipad/i.test(ua)) return 'iPad';
+  if (/android/i.test(ua) && /mobile/i.test(ua)) return 'Android Phone';
+  if (/android/i.test(ua)) return 'Android Tablet';
+  if (/(tablet|kindle|playbook|silk)/i.test(ua)) return 'Tablet';
+  if (/mobile/i.test(ua)) return 'Mobile';
+  return 'Desktop';
+}
+
+function parseOS(ua) {
+  if (/windows nt 10/i.test(ua)) return 'Windows 10/11';
+  if (/windows nt 6.3/i.test(ua)) return 'Windows 8.1';
+  if (/windows nt 6.2/i.test(ua)) return 'Windows 8';
+  if (/windows nt 6.1/i.test(ua)) return 'Windows 7';
+  if (/windows/i.test(ua)) return 'Windows';
+  if (/iphone|ipad|ipod/i.test(ua)) {
     const match = ua.match(/OS (\d+)[_\d]*/);
-    os = match ? `iOS ${match[1]}` : 'iOS';
+    return match ? `iOS ${match[1]}` : 'iOS';
   }
-  else if (/android (\d+)/i.test(ua)) {
+  if (/android/i.test(ua)) {
     const match = ua.match(/android (\d+)/i);
-    os = match ? `Android ${match[1]}` : 'Android';
+    return match ? `Android ${match[1]}` : 'Android';
   }
-  else if (/mac os x/i.test(ua)) {
+  if (/mac os x/i.test(ua)) {
     const match = ua.match(/Mac OS X (\d+)[_\d]*/);
-    os = match ? `macOS ${match[1]}` : 'macOS';
+    return match ? `macOS ${match[1]}` : 'macOS';
   }
-  else if (/linux/i.test(ua)) os = 'Linux';
-  else if (/cros/i.test(ua)) os = 'Chrome OS';
-  
-  // Browser
-  let browser = 'Unknown';
-  if (/edg/i.test(ua)) browser = 'Edge';
-  else if (/chrome/i.test(ua) && !/edg/i.test(ua)) browser = 'Chrome';
-  else if (/safari/i.test(ua) && !/chrome/i.test(ua)) browser = 'Safari';
-  else if (/firefox/i.test(ua)) browser = 'Firefox';
-  else if (/opera|opr/i.test(ua)) browser = 'Opera';
-  
-  return { device, os, browser };
+  if (/linux/i.test(ua)) return 'Linux';
+  if (/cros/i.test(ua)) return 'Chrome OS';
+  return 'Unknown';
+}
+
+function parseBrowser(ua) {
+  if (/edg/i.test(ua)) return 'Edge';
+  if (/chrome/i.test(ua) && !/edg/i.test(ua)) return 'Chrome';
+  if (/safari/i.test(ua) && !/chrome/i.test(ua)) return 'Safari';
+  if (/firefox/i.test(ua)) return 'Firefox';
+  if (/opera|opr/i.test(ua)) return 'Opera';
+  return 'Unknown';
 }
 
 // Basic in-memory rate limit per IP (best-effort)
@@ -192,27 +201,45 @@ function json(body, origin, allowedOrigin, status = 200) {
   return new Response(JSON.stringify(body), { status, headers });
 }
 
-async function handleTrack(request, env, origin, allowedOrigin) {
-  const ip = request.headers.get('CF-Connecting-IP') || '0.0.0.0';
-  if (rateLimited(ip)) {
-    return json({ error: 'rate_limited' }, origin, allowedOrigin, 429);
+const sanitize = (str, maxLen = 500) => {
+  if (!str) return null;
+  return String(str).slice(0, maxLen);
+};
+
+function validateEventPayload(payload) {
+  const allowedEvents = new Set(['page_view', 'link_click']);
+  if (!allowedEvents.has(payload?.event_name)) {
+    return { ok: false, error: { error: 'invalid_event' } };
+  }
+  
+  const required = ['event_id', 'visitor_id', 'session_id', 'page_path'];
+  for (const k of required) {
+    if (!payload[k] || typeof payload[k] !== 'string') {
+      return { ok: false, error: { error: 'missing_field', field: k } };
+    }
   }
 
-  let payload;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(payload.event_id) || !uuidRegex.test(payload.visitor_id) || !uuidRegex.test(payload.session_id)) {
+    return { ok: false, error: { error: 'invalid_id_format' } };
+  }
+
+  return { ok: true };
+}
+
+function sanitizeReferrer(referrer) {
+  if (!referrer) return null;
   try {
-    payload = await request.json();
+    const refUrl = new URL(referrer);
+    refUrl.username = '';
+    refUrl.password = '';
+    return sanitize(refUrl.toString(), 1000);
   } catch {
-    return json({ error: 'invalid_json' }, origin, allowedOrigin, 400);
+    return sanitize(referrer, 1000);
   }
+}
 
-  const ua = request.headers.get('User-Agent') || '';
-  const bot = isBot(ua) ? 1 : 0;
-
-  // Parse device, OS, and browser from User-Agent
-  const deviceInfo = parseDeviceInfo(ua);
-
-  // Extract geolocation from Cloudflare request object
-  const geo = request.cf || {};
+function buildEventValues(payload, ua, bot, deviceInfo, geo, referrer, occurred_at) {
   const country = geo.country || null;
   const region = geo.region || null;
   const city = geo.city || null;
@@ -220,59 +247,7 @@ async function handleTrack(request, env, origin, allowedOrigin) {
   const latitude = geo.latitude ? Number.parseFloat(geo.latitude) : null;
   const longitude = geo.longitude ? Number.parseFloat(geo.longitude) : null;
 
-  // Schema validation
-  const allowedEvents = new Set(['page_view', 'link_click']);
-  if (!allowedEvents.has(payload?.event_name)) {
-    return json({ error: 'invalid_event' }, origin, allowedOrigin, 400);
-  }
-  // Required
-  const required = ['event_id', 'visitor_id', 'session_id', 'page_path'];
-  for (const k of required) {
-    if (!payload[k] || typeof payload[k] !== 'string') {
-      return json({ error: 'missing_field', field: k }, origin, allowedOrigin, 400);
-    }
-  }
-
-  // SECURITY: Input validation and sanitization
-  // Limit string lengths to prevent DoS and ensure data quality
-  const sanitize = (str, maxLen = 500) => {
-    if (!str) return null;
-    return String(str).slice(0, maxLen);
-  };
-  
-  // SECURITY: Validate UUID format for event_id and visitor_id
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(payload.event_id) || !uuidRegex.test(payload.visitor_id) || !uuidRegex.test(payload.session_id)) {
-    return json({ error: 'invalid_id_format' }, origin, allowedOrigin, 400);
-  }
-
-  // SECURITY: Sanitize referrer URL - strip credentials if present
-  let referrer = null;
-  if (payload.referrer) {
-    try {
-      const refUrl = new URL(payload.referrer);
-      // Remove credentials from URL
-      refUrl.username = '';
-      refUrl.password = '';
-      referrer = sanitize(refUrl.toString(), 1000);
-    } catch {
-      referrer = sanitize(payload.referrer, 1000);
-    }
-  }
-
-  const occurred_at = Date.now();
-  // Prepare insert
-  const stmt = env.DB.prepare(
-    `INSERT INTO events (
-      event_id, event_name, occurred_at, visitor_id, session_id, page_path,
-      link_id, label, destination_url, referrer,
-      utm_source, utm_medium, utm_campaign, utm_content, utm_term,
-      user_agent, is_bot, country, region, city, timezone, latitude, longitude,
-      device, os, browser
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  );
-
-  const values = [
+  return [
     payload.event_id,
     payload.event_name,
     occurred_at,
@@ -300,6 +275,49 @@ async function handleTrack(request, env, origin, allowedOrigin) {
     deviceInfo.os,
     deviceInfo.browser
   ];
+}
+
+async function handleTrack(request, env, origin, allowedOrigin) {
+  const ip = request.headers.get('CF-Connecting-IP') || '0.0.0.0';
+  if (rateLimited(ip)) {
+    return json({ error: 'rate_limited' }, origin, allowedOrigin, 429);
+  }
+
+  let payload;
+  try {
+    payload = await request.json();
+  } catch {
+    return json({ error: 'invalid_json' }, origin, allowedOrigin, 400);
+  }
+
+  // Validate event payload
+  const validation = validateEventPayload(payload);
+  if (!validation.ok) {
+    return json(validation.error, origin, allowedOrigin, 400);
+  }
+
+  const ua = request.headers.get('User-Agent') || '';
+  const bot = isBot(ua) ? 1 : 0;
+  const deviceInfo = parseDeviceInfo(ua);
+
+  // Extract geolocation from Cloudflare request object
+  const geo = request.cf || {};
+  const referrer = sanitizeReferrer(payload.referrer);
+  
+  // Build event record
+  const occurred_at = Date.now();
+  const values = buildEventValues(payload, ua, bot, deviceInfo, geo, referrer, occurred_at);
+
+  // Prepare insert
+  const stmt = env.DB.prepare(
+    `INSERT INTO events (
+      event_id, event_name, occurred_at, visitor_id, session_id, page_path,
+      link_id, label, destination_url, referrer,
+      utm_source, utm_medium, utm_campaign, utm_content, utm_term,
+      user_agent, is_bot, country, region, city, timezone, latitude, longitude,
+      device, os, browser
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  );
 
   try {
     await stmt.bind(...values).run();

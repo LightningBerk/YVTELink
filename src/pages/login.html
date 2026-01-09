@@ -39,7 +39,7 @@
       position: absolute;
       top: -40px;
       left: 0;
-      background: #667eea;
+      background: #8b9edb;
       color: white;
       padding: 8px 16px;
       text-decoration: none;
@@ -194,7 +194,7 @@
     .login-button {
       width: 100%;
       padding: 12px 16px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #8b9edb 0%, #9d7fb8 100%);
       color: white;
       border: none;
       border-radius: 8px;
@@ -507,7 +507,8 @@
             data = await response.json();
           } catch (parseError) {
             // If response isn't JSON, the endpoint probably doesn't exist
-            throw new Error('Invalid API response. The /auth/login endpoint may not be deployed yet. Run: wrangler deploy');
+            const error = new Error('Invalid API response. The /auth/login endpoint may not be deployed yet. Run: wrangler deploy');
+            throw error;
           }
 
           if (!response.ok || !data.ok) {

@@ -50,6 +50,8 @@
       sessionStorage.setItem('return_to', globalThis.location.href);
       globalThis.location.href = '/src/pages/login.html';
       return false;
+    } finally {
+      updateStatus(true);
     }
   }
 
@@ -466,8 +468,8 @@
         <div style="font-family: Inter, sans-serif;">
           <strong style="color: #6B3A8A;">${city}, ${country}</strong><br>
           <span style="font-size: 0.9em;">
-            ${pageviews} pageview${pageviews !== 1 ? 's' : ''}<br>
-            ${uniques} unique visitor${uniques !== 1 ? 's' : ''}
+            ${pageviews} pageview${pageviews === 1 ? '' : 's'}<br>
+            ${uniques} unique visitor${uniques === 1 ? '' : 's'}
           </span>
         </div>
       `);
@@ -589,7 +591,8 @@
       detailsDiv.style.color = 'var(--color-text-muted)';
       detailsDiv.style.fontSize = 'var(--text-xs)';
       detailsDiv.style.marginTop = '4px';
-      detailsDiv.textContent = `📍 ${location} • 📱 ${device}${browser ? ` • ${browser}` : ''}`;
+      const browserInfo = browser ? ` • ${browser}` : '';
+      detailsDiv.textContent = `📍 ${location} • 📱 ${device}${browserInfo}`;
       
       mainDiv.appendChild(actionDiv);
       mainDiv.appendChild(detailsDiv);
@@ -660,68 +663,60 @@
       return;
     }
 
-    const lines = [];
-    lines.push('ANALYTICS EXPORT');
-    lines.push(`Exported: ${new Date().toISOString()}`);
-    lines.push('');
-
-    lines.push('KPI SUMMARY');
+    const lines = [
+      'ANALYTICS EXPORT',
+      `Exported: ${new Date().toISOString()}`,
+      '',
+      'KPI SUMMARY',
+    ];
     const totals = lastData.totals || {};
     lines.push(`Pageviews,Clicks,Uniques,CTR`);
     lines.push(`${totals.pageviews || 0},${totals.clicks || 0},${totals.uniques || 0},${((totals.ctr || 0) * 100).toFixed(1)}%`);
     lines.push('');
 
-    lines.push('TOP LINKS');
-    lines.push(`Link,Clicks,Uniques`);
+    lines.push('TOP LINKS', `Link,Clicks,Uniques`);
     (lastData.top_links || []).forEach(row => {
       lines.push(`"${row.label || row.link_id || ''}",${row.clicks || 0},${row.uniques || 0}`);
     });
     lines.push('');
 
-    lines.push('TOP REFERRERS');
-    lines.push(`Referrer,Pageviews`);
+    lines.push('TOP REFERRERS', `Referrer,Pageviews`);
     (lastData.top_referrers || []).forEach(row => {
       lines.push(`"${row.referrer || 'Direct'}",${row.pageviews || 0}`);
     });
     lines.push('');
 
-    lines.push('TOP COUNTRIES');
-    lines.push(`Country,Pageviews,Clicks,Uniques`);
+    lines.push('TOP COUNTRIES', `Country,Pageviews,Clicks,Uniques`);
     (lastData.top_countries || []).forEach(row => {
       lines.push(`"${row.country || 'Unknown'}",${row.pageviews || 0},${row.clicks || 0},${row.uniques || 0}`);
     });
     lines.push('');
 
-    lines.push('DEVICES');
-    lines.push(`Device,Pageviews,Uniques`);
+    lines.push('DEVICES', `Device,Pageviews,Uniques`);
     (lastData.devices || []).forEach(row => {
       lines.push(`"${row.device || 'Unknown'}",${row.pageviews || 0},${row.uniques || 0}`);
     });
     lines.push('');
 
-    lines.push('OPERATING SYSTEMS');
-    lines.push(`OS,Pageviews,Uniques`);
+    lines.push('OPERATING SYSTEMS', `OS,Pageviews,Uniques`);
     (lastData.operating_systems || []).forEach(row => {
       lines.push(`"${row.os || 'Unknown'}",${row.pageviews || 0},${row.uniques || 0}`);
     });
     lines.push('');
 
-    lines.push('BROWSERS');
-    lines.push(`Browser,Pageviews,Uniques`);
+    lines.push('BROWSERS', `Browser,Pageviews,Uniques`);
     (lastData.browsers || []).forEach(row => {
       lines.push(`"${row.browser || 'Unknown'}",${row.pageviews || 0},${row.uniques || 0}`);
     });
     lines.push('');
 
-    lines.push('UTM CAMPAIGNS');
-    lines.push(`Source,Medium,Campaign,Pageviews,Clicks,Uniques`);
+    lines.push('UTM CAMPAIGNS', `Source,Medium,Campaign,Pageviews,Clicks,Uniques`);
     (lastData.utm_campaigns || []).forEach(row => {
       lines.push(`"${row.utm_source || ''}","${row.utm_medium || ''}","${row.utm_campaign || ''}",${row.pageviews || 0},${row.clicks || 0},${row.uniques || 0}`);
     });
     lines.push('');
 
-    lines.push('TIMESERIES');
-    lines.push(`Date,Pageviews,Clicks`);
+    lines.push('TIMESERIES', `Date,Pageviews,Clicks`);
     (lastData.timeseries || []).forEach(row => {
       lines.push(`${row.day || ''},${row.pageviews || 0},${row.clicks || 0}`);
     });
