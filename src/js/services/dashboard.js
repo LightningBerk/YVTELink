@@ -45,6 +45,8 @@
       return true;
     } catch (err) {
       // Token is invalid, clear storage and redirect to login
+      // Explicitly handle the exception by logging and redirecting
+      globalThis.console.error('Authentication check failed:', err instanceof Error ? err.message : String(err));
       sessionStorage.removeItem('auth_token');
       localStorage.removeItem('auth_token_backup');
       sessionStorage.setItem('return_to', globalThis.location.href);
@@ -668,55 +670,38 @@
       `Exported: ${new Date().toISOString()}`,
       '',
       'KPI SUMMARY',
+      `Pageviews,Clicks,Uniques,CTR`,
     ];
     const totals = lastData.totals || {};
-    lines.push(`Pageviews,Clicks,Uniques,CTR`);
-    lines.push(`${totals.pageviews || 0},${totals.clicks || 0},${totals.uniques || 0},${((totals.ctr || 0) * 100).toFixed(1)}%`);
-    lines.push('');
-
-    lines.push('TOP LINKS', `Link,Clicks,Uniques`);
+    lines.push(`${totals.pageviews || 0},${totals.clicks || 0},${totals.uniques || 0},${((totals.ctr || 0) * 100).toFixed(1)}%`, '', 'TOP LINKS', `Link,Clicks,Uniques`);
     (lastData.top_links || []).forEach(row => {
       lines.push(`"${row.label || row.link_id || ''}",${row.clicks || 0},${row.uniques || 0}`);
     });
-    lines.push('');
-
-    lines.push('TOP REFERRERS', `Referrer,Pageviews`);
+    lines.push('', 'TOP REFERRERS', `Referrer,Pageviews`);
     (lastData.top_referrers || []).forEach(row => {
       lines.push(`"${row.referrer || 'Direct'}",${row.pageviews || 0}`);
     });
-    lines.push('');
-
-    lines.push('TOP COUNTRIES', `Country,Pageviews,Clicks,Uniques`);
+    lines.push('', 'TOP COUNTRIES', `Country,Pageviews,Clicks,Uniques`);
     (lastData.top_countries || []).forEach(row => {
       lines.push(`"${row.country || 'Unknown'}",${row.pageviews || 0},${row.clicks || 0},${row.uniques || 0}`);
     });
-    lines.push('');
-
-    lines.push('DEVICES', `Device,Pageviews,Uniques`);
+    lines.push('', 'DEVICES', `Device,Pageviews,Uniques`);
     (lastData.devices || []).forEach(row => {
       lines.push(`"${row.device || 'Unknown'}",${row.pageviews || 0},${row.uniques || 0}`);
     });
-    lines.push('');
-
-    lines.push('OPERATING SYSTEMS', `OS,Pageviews,Uniques`);
+    lines.push('', 'OPERATING SYSTEMS', `OS,Pageviews,Uniques`);
     (lastData.operating_systems || []).forEach(row => {
       lines.push(`"${row.os || 'Unknown'}",${row.pageviews || 0},${row.uniques || 0}`);
     });
-    lines.push('');
-
-    lines.push('BROWSERS', `Browser,Pageviews,Uniques`);
+    lines.push('', 'BROWSERS', `Browser,Pageviews,Uniques`);
     (lastData.browsers || []).forEach(row => {
       lines.push(`"${row.browser || 'Unknown'}",${row.pageviews || 0},${row.uniques || 0}`);
     });
-    lines.push('');
-
-    lines.push('UTM CAMPAIGNS', `Source,Medium,Campaign,Pageviews,Clicks,Uniques`);
+    lines.push('', 'UTM CAMPAIGNS', `Source,Medium,Campaign,Pageviews,Clicks,Uniques`);
     (lastData.utm_campaigns || []).forEach(row => {
       lines.push(`"${row.utm_source || ''}","${row.utm_medium || ''}","${row.utm_campaign || ''}",${row.pageviews || 0},${row.clicks || 0},${row.uniques || 0}`);
     });
-    lines.push('');
-
-    lines.push('TIMESERIES', `Date,Pageviews,Clicks`);
+    lines.push('', 'TIMESERIES', `Date,Pageviews,Clicks`);
     (lastData.timeseries || []).forEach(row => {
       lines.push(`${row.day || ''},${row.pageviews || 0},${row.clicks || 0}`);
     });

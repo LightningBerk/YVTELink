@@ -20,56 +20,47 @@ export default {
 
 async function routeRequest(request, url, env, origin, allowedOrigin, ip) {
   const path = url.pathname.replace(/\/$/, '');
-  
-  if (path === '/health') {
-    return json({ ok: true }, origin, allowedOrigin);
-  }
+  const method = request.method;
+  const routeKey = `${method}:${path}`;
 
-  // Authentication endpoints - apply strict rate limiting and CSRF protection
-  if (path === '/auth/setup' && request.method === 'POST') {
-    if (authRateLimited(ip)) {
-      return json({ ok: false, error: 'Too many attempts. Please try again later.' }, origin, allowedOrigin, 429);
-    }
-    if (!validateOrigin(origin, allowedOrigin)) {
-      return json({ ok: false, error: 'Invalid origin' }, origin, allowedOrigin, 403);
-    }
-    return await handleSetup(request, env, origin, allowedOrigin, ip);
-  }
+  switch (routeKey) {
+    case 'POST:/auth/setup':
+    case 'POST:/auth/login':
+      if (authRateLimited(ip)) {
+        return json({ ok: false, error: 'Too many attempts. Please try again later.' }, origin, allowedOrigin, 429);
+      }
+      if (!validateOrigin(origin, allowedOrigin)) {
+        return json({ ok: false, error: 'Invalid origin' }, origin, allowedOrigin, 403);
+      }
+      return path === '/auth/setup' 
+        ? await handleSetup(request, env, origin, allowedOrigin, ip)
+        : await handleLogin(request, env, origin, allowedOrigin, ip);
 
-  if (path === '/auth/login' && request.method === 'POST') {
-    if (authRateLimited(ip)) {
-      return json({ ok: false, error: 'Too many attempts. Please try again later.' }, origin, allowedOrigin, 429);
-    }
-    if (!validateOrigin(origin, allowedOrigin)) {
-      return json({ ok: false, error: 'Invalid origin' }, origin, allowedOrigin, 403);
-    }
-    return await handleLogin(request, env, origin, allowedOrigin, ip);
-  }
+    case 'GET:/auth/verify':
+      return await handleVerify(request, env, origin, allowedOrigin);
 
-  if (path === '/auth/verify' && request.method === 'GET') {
-    return await handleVerify(request, env, origin, allowedOrigin);
-  }
+    case 'POST:/auth/logout':
+      if (!validateOrigin(origin, allowedOrigin)) {
+        return json({ ok: false, error: 'Invalid origin' }, origin, allowedOrigin, 403);
+      }
+      return await handleLogout(request, env, origin, allowedOrigin);
 
-  if (path === '/auth/logout' && request.method === 'POST') {
-    if (!validateOrigin(origin, allowedOrigin)) {
-      return json({ ok: false, error: 'Invalid origin' }, origin, allowedOrigin, 403);
-    }
-    return await handleLogout(request, env, origin, allowedOrigin);
-  }
+    case 'POST:/track':
+      return await handleTrack(request, env, origin, allowedOrigin);
 
-  if (path === '/track' && request.method === 'POST') {
-    return await handleTrack(request, env, origin, allowedOrigin);
-  }
+    case 'GET:/summary':
+      return await handleSummary(request, env, origin, allowedOrigin);
 
-  if (path === '/summary' && request.method === 'GET') {
-    return await handleSummary(request, env, origin, allowedOrigin);
-  }
+    case 'GET:/links':
+      return await handleLinks(request, env, origin, allowedOrigin);
 
-  if (path === '/links' && request.method === 'GET') {
-    return await handleLinks(request, env, origin, allowedOrigin);
-  }
+    case 'GET:/health':
+    case 'HEAD:/health':
+      return json({ ok: true }, origin, allowedOrigin);
 
-  return json({ error: 'Not found' }, origin, allowedOrigin, 404);
+    default:
+      return json({ error: 'Not found' }, origin, allowedOrigin, 404);
+  }
 }
 
 const BOT_UA_SUBSTRINGS = [
@@ -96,26 +87,38 @@ function parseDevice(ua) {
 }
 
 function parseOS(ua) {
-  if (/windows nt 10/i.test(ua)) return 'Windows 10/11';
-  if (/windows nt 6.3/i.test(ua)) return 'Windows 8.1';
-  if (/windows nt 6.2/i.test(ua)) return 'Windows 8';
-  if (/windows nt 6.1/i.test(ua)) return 'Windows 7';
-  if (/windows/i.test(ua)) return 'Windows';
+  const patterns = [
+    [/windows nt 10/i, 'Windows 10/11'],
+    [/windows nt 6.3/i, 'Windows 8.1'],
+    [/windows nt 6.2/i, 'Windows 8'],
+    [/windows nt 6.1/i, 'Windows 7'],
+    [/windows/i, 'Windows'],
+    [/linux/i, 'Linux'],
+    [/cros/i, 'Chrome OS'],
+  ];
+
+  for (const [pattern, name] of patterns) {
+    if (pattern.test(ua)) {
+      return String(name);
+    }
+  }
+
   if (/iphone|ipad|ipod/i.test(ua)) {
     const match = ua.match(/OS (\d+)[_\d]*/);
-    return match ? `iOS ${match[1]}` : 'iOS';
+    return String(match ? `iOS ${match[1]}` : 'iOS');
   }
+  
   if (/android/i.test(ua)) {
     const match = ua.match(/android (\d+)/i);
-    return match ? `Android ${match[1]}` : 'Android';
+    return String(match ? `Android ${match[1]}` : 'Android');
   }
+  
   if (/mac os x/i.test(ua)) {
     const match = ua.match(/Mac OS X (\d+)[_\d]*/);
-    return match ? `macOS ${match[1]}` : 'macOS';
+    return String(match ? `macOS ${match[1]}` : 'macOS');
   }
-  if (/linux/i.test(ua)) return 'Linux';
-  if (/cros/i.test(ua)) return 'Chrome OS';
-  return 'Unknown';
+
+  return String('Unknown');
 }
 
 function parseBrowser(ua) {
