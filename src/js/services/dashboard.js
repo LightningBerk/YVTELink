@@ -1,67 +1,11 @@
 (() => {
-  const cfg = globalThis.ANALYTICS_CONFIG || {};
-  const API_BASE = (cfg.ANALYTICS_API_BASE || '').replace(/\/$/, '');
-
-  // =========================================================================
-  // AUTH GUARD: Check if user is authenticated on page load
-  // =========================================================================
-  let authToken = null;
-
-  async function checkAuth() {
-    // Try to get token from sessionStorage first (freshly logged in)
-    let token = sessionStorage.getItem('auth_token');
-    
-    // Fallback to localStorage backup if session cleared
-    if (!token) {
-      token = localStorage.getItem('auth_token_backup');
-    }
-
-    if (!token) {
-      // No token found, redirect to login
-      // Save the current URL so we can return after login
-      sessionStorage.setItem('return_to', globalThis.location.href);
-      globalThis.location.href = '/src/pages/login.html';
-      return false;
-    }
-
-    // Verify token is still valid with backend
-    try {
-      const res = await fetch(`${API_BASE}/auth/verify`, {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (!res.ok) {
-        throw new Error('Token invalid');
-      }
-
-      const data = await res.json();
-      if (!data.authenticated) {
-        throw new Error('Not authenticated');
-      }
-
-      // Token is valid, store for use
-      authToken = token;
-      return true;
-    } catch (err) {
-      // Token is invalid, clear storage and redirect to login
-      // Explicitly handle the exception by logging and redirecting
-      globalThis.console.error('Authentication check failed:', err instanceof Error ? err.message : String(err));
-      sessionStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_token_backup');
-      sessionStorage.setItem('return_to', globalThis.location.href);
-      globalThis.location.href = '/src/pages/login.html';
-      return false;
-    } finally {
-      updateStatus(true);
-    }
-  }
+  // Use AuthService and ApiService instead of local logic
+  const auth = globalThis.AuthService;
+  const api = globalThis.ApiService;
 
   // Run auth check immediately on page load
-  checkAuth().then(authenticated => {
-    if (!authenticated) return;
-
-    // If we reach here, user is authenticated
+  auth.checkAuth().then(token => {
+    if (!token) return;
     initDashboard();
   });
 
@@ -69,21 +13,16 @@
   // DASHBOARD INITIALIZATION
   // =========================================================================
   function initDashboard() {
-    // Set up account menu and dropdown
     const accountToggle = document.getElementById('account-toggle');
     const accountDropdown = document.getElementById('account-dropdown');
     const logoutBtn = document.getElementById('logout-btn');
-    
-    // Update login time
-    const loginTime = document.getElementById('login-time');
+
     if (loginTime) {
-      loginTime.textContent = 'Logged in ' + new Date().toLocaleTimeString([], { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      loginTime.textContent = 'Logged in ' + new Date().toLocaleTimeString([], {
+        hour: '2-digit', minute: '2-digit'
       });
     }
-    
-    // Toggle dropdown menu
+
     if (accountToggle) {
       accountToggle.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -92,43 +31,18 @@
         accountToggle.classList.toggle('open');
       });
     }
-    
-    // Close dropdown when clicking outside
+
     document.addEventListener('click', () => {
       if (accountDropdown) {
         accountDropdown.style.display = 'none';
         if (accountToggle) accountToggle.classList.remove('open');
       }
     });
-    
-    // Close dropdown when clicking inside it
-    if (accountDropdown) {
-      accountDropdown.addEventListener('click', (e) => {
-        e.stopPropagation();
-      });
-    }
-    
-    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
 
-    // Continue with normal initialization
-    loadToken();
+    if (logoutBtn) logoutBtn.addEventListener('click', () => auth.logout());
+
     onRangeChange();
-  }
-
-  async function handleLogout(e) {
-    e.preventDefault();
-    try {
-      // Call logout endpoint (optional, for server-side cleanup)
-      await fetch(`${API_BASE}/auth/logout`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${authToken}` }
-      }).catch(() => {}); // Ignore errors on logout
-    } finally {
-      // Clear tokens and redirect to login
-      sessionStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_token_backup');
-      globalThis.location.href = '/src/pages/login.html';
-    }
+    loadData(); // Auto-load on init
   }
 
   const els = {
@@ -158,13 +72,14 @@
     map: document.getElementById('map')
   };
 
+  const loginTime = document.getElementById('login-time');
+
   let lastData = null;
   let map = null;
   let markerLayer = null;
 
   function showAlert(msg, type = 'error') {
-    // SECURITY: Use textContent to prevent XSS
-    els.alert.innerHTML = ''; // Clear first
+    els.alert.innerHTML = '';
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert ${type}`;
     alertDiv.textContent = msg;
@@ -175,46 +90,13 @@
     }
   }
 
-  function updateStatus(authenticated) {
-    if (authenticated) {
-      // Status is now shown in the header with animated indicator
-      // Just show/hide export button based on auth status
-      els.export.style.display = 'inline-block';
-    } else {
-      els.export.style.display = 'none';
-    }
-  }
-
-  async function apiGet(path, params = {}){
-    const token = authToken;
-    const url = new URL(API_BASE + path);
-    Object.entries(params).forEach(([k,v])=>{ if(v!=null) url.searchParams.set(k, v); });
-    const res = await fetch(url.toString(), {
-      headers: { Authorization: `Bearer ${token}` },
-      mode: 'cors'
-    });
-    if (!res.ok) {
-      if (res.status === 401) {
-        // Token expired or invalid, redirect to login
-        sessionStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_token_backup');
-        sessionStorage.setItem('return_to', globalThis.location.href);
-        globalThis.location.href = '/src/pages/login.html';
-      }
-      updateStatus(false);
-      throw new Error('API error ' + res.status);
-    }
-    updateStatus(true);
-    return res.json();
-  }
-
   function formatNumber(n) {
-    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
-    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
-    return String(n);
+    return api.formatNumber(n);
   }
 
-  function renderKPIs(totals){
+
+
+  function renderKPIs(totals) {
     els.kpiPageviews.textContent = formatNumber(totals.pageviews || 0);
     els.kpiClicks.textContent = formatNumber(totals.clicks || 0);
     els.kpiUniques.textContent = formatNumber(totals.uniques || 0);
@@ -222,7 +104,7 @@
     els.kpiCtr.textContent = ctr.toFixed(1) + '%';
   }
 
-  function renderTable(tbody, rows, cols){
+  function renderTable(tbody, rows, cols) {
     tbody.innerHTML = '';
     if (!rows || rows.length === 0) {
       const tr = document.createElement('tr');
@@ -252,10 +134,10 @@
     });
   }
 
-  function renderChart(series){
+  function renderChart(series) {
     const ctx = els.chart.getContext('2d');
     ctx.clearRect(0, 0, els.chart.width, els.chart.height);
-    
+
     if (!series || series.length === 0) {
       ctx.fillStyle = '#6B3A8A';
       ctx.font = '16px Inter, sans-serif';
@@ -269,18 +151,18 @@
     const margin = 48;
     const innerW = w - margin * 2;
     const innerH = h - margin * 2;
-    
+
     const pageviews = series.map(s => s.pageviews || 0);
     const clicks = series.map(s => s.clicks || 0);
     const maxY = Math.max(1, Math.max(...pageviews), Math.max(...clicks));
     const pointCount = Math.max(series.length, 1);
 
-    function scaleX(i){ 
+    function scaleX(i) {
       if (pointCount === 1) return margin + innerW / 2;
-      return margin + (i / (pointCount - 1)) * innerW; 
+      return margin + (i / (pointCount - 1)) * innerW;
     }
-    function scaleY(v){ 
-      return margin + innerH - (v / maxY) * innerH; 
+    function scaleY(v) {
+      return margin + innerH - (v / maxY) * innerH;
     }
 
     // Background grid
@@ -409,7 +291,7 @@
     ctx.font = 'bold 12px Inter, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    
+
     ctx.fillStyle = '#6B3A8A';
     ctx.fillRect(w - 200, margin, 14, 14);
     ctx.fillStyle = '#0f1720';
@@ -518,15 +400,15 @@
         const key = `${hour}-${day}`;
         const views = dataMap[key] || 0;
         const intensity = views / maxViews;
-        
+
         // Purple gradient based on intensity
         const r = Math.floor(107 + (255 - 107) * (1 - intensity));
         const g = Math.floor(58 + (255 - 58) * (1 - intensity));
         const b = Math.floor(138 + (255 - 138) * (1 - intensity));
-        
+
         ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
         ctx.fillRect(60 + hour * cellWidth, 30 + day * cellHeight, cellWidth - 1, cellHeight - 1);
-        
+
         // Add text for significant values
         if (views > 0) {
           ctx.fillStyle = intensity > 0.5 ? '#fff' : '#6B3A8A';
@@ -568,7 +450,7 @@
     activity.forEach(item => {
       const div = document.createElement('div');
       div.className = 'activity-item';
-      
+
       const time = new Date(item.occurred_at).toLocaleString();
       const icon = item.event_name === 'link_click' ? '🔗' : '👁️';
       const action = item.event_name === 'link_click' ? 'clicked' : 'viewed';
@@ -576,11 +458,11 @@
       const location = item.city && item.country ? `${item.city}, ${item.country}` : (item.country || 'Unknown');
       const device = item.device || 'Unknown';
       const browser = item.browser || '';
-      
+
       // SECURITY: Use textContent to prevent XSS - do not use innerHTML with user data
       const mainDiv = document.createElement('div');
       mainDiv.style.flex = '1';
-      
+
       const actionDiv = document.createElement('div');
       const actionStrong = document.createElement('strong');
       actionStrong.textContent = `${icon} ${action}`;
@@ -588,30 +470,30 @@
       targetSpan.textContent = ` ${target}`;
       actionDiv.appendChild(actionStrong);
       actionDiv.appendChild(targetSpan);
-      
+
       const detailsDiv = document.createElement('div');
       detailsDiv.style.color = 'var(--color-text-muted)';
       detailsDiv.style.fontSize = 'var(--text-xs)';
       detailsDiv.style.marginTop = '4px';
       const browserInfo = browser ? ` • ${browser}` : '';
       detailsDiv.textContent = `📍 ${location} • 📱 ${device}${browserInfo}`;
-      
+
       mainDiv.appendChild(actionDiv);
       mainDiv.appendChild(detailsDiv);
-      
+
       const timeDiv = document.createElement('div');
       timeDiv.style.color = 'var(--color-text-muted)';
       timeDiv.style.fontSize = 'var(--text-xs)';
       timeDiv.style.whiteSpace = 'nowrap';
       timeDiv.textContent = time;
-      
+
       div.appendChild(mainDiv);
       div.appendChild(timeDiv);
       els.activityFeed.appendChild(div);
     });
   }
 
-  async function loadData(){
+  async function loadData() {
     els.load.classList.add('loading');
     try {
       const range = els.range.value;
@@ -625,7 +507,7 @@
         }
       }
 
-      const summary = await apiGet('/summary', params);
+      const summary = await api.apiGet('/summary', params);
       lastData = summary;
 
       renderKPIs(summary.totals || {});
@@ -653,7 +535,7 @@
     }
   }
 
-  function onRangeChange(){
+  function onRangeChange() {
     const custom = els.range.value === 'custom';
     els.dateStartGroup.style.display = custom ? 'flex' : 'none';
     els.dateEndGroup.style.display = custom ? 'flex' : 'none';

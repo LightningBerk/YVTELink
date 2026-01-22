@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,13 +8,13 @@
   <link rel="stylesheet" href="../styles/main.css" />
   <link rel="stylesheet" href="../styles/dashboard.css" />
   <!-- SECURITY: Leaflet.js with Subresource Integrity (SRI) for supply chain security -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
-        crossorigin="anonymous" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
-          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
-          crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
   <script src="../js/lib/config.js" defer></script>
+  <script src="../js/services/auth.js" defer></script>
+  <script src="../js/services/api.js" defer></script>
   <script src="../js/services/dashboard.js" defer></script>
   <link rel="canonical" href="/src/pages/dashboard.html" />
   <meta name="robots" content="noindex" />
@@ -21,6 +22,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 </head>
+
 <body class="admin">
   <div class="admin-header">
     <div class="admin-header-content">
@@ -28,15 +30,20 @@
         <h1 class="admin-header-title">📊 Analytics Dashboard</h1>
         <p class="admin-header-subtitle">Real-time insights and performance metrics</p>
       </div>
-      
+
       <div class="admin-header-account">
+        <!-- Return to Site Link -->
+        <a href="../../index.html" class="account-btn" style="text-decoration: none; margin-right: 1rem;">
+          <span class="icon">←</span> Return to Site
+        </a>
+
         <div class="auth-status">
           <div class="status-indicator">
             <span class="status-dot"></span>
             <span class="status-text">Connected</span>
           </div>
         </div>
-        
+
         <div class="account-menu">
           <button class="account-btn" id="account-toggle" aria-label="Account menu">
             <div class="account-avatar">👤</div>
@@ -45,10 +52,11 @@
               <div class="account-status" id="account-time">Just now</div>
             </div>
             <svg class="chevron-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M6 6L8 8L10 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M6 6L8 8L10 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round" />
             </svg>
           </button>
-          
+
           <div class="account-dropdown" id="account-dropdown" style="display: none;">
             <div class="dropdown-header">
               <div class="dropdown-avatar">👤</div>
@@ -75,7 +83,7 @@
       <div class="controls-header">
         <h3 class="controls-title">Dashboard Controls</h3>
       </div>
-      
+
       <div class="controls-grid">
         <div class="admin-control-group">
           <label for="range">Date Range</label>
@@ -106,19 +114,31 @@
     <div class="cards">
       <div class="card">
         <div class="card-label">Pageviews</div>
-        <h2 class="card-value" id="kpi-pageviews">—</h2>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <h2 class="card-value" id="kpi-pageviews">—</h2>
+          <span style="font-size: 1.5rem; opacity: 0.5;">👁️</span>
+        </div>
       </div>
       <div class="card">
         <div class="card-label">Clicks</div>
-        <h2 class="card-value" id="kpi-clicks">—</h2>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <h2 class="card-value" id="kpi-clicks">—</h2>
+          <span style="font-size: 1.5rem; opacity: 0.5;">👆</span>
+        </div>
       </div>
       <div class="card">
         <div class="card-label">Unique Visitors</div>
-        <h2 class="card-value" id="kpi-uniques">—</h2>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <h2 class="card-value" id="kpi-uniques">—</h2>
+          <span style="font-size: 1.5rem; opacity: 0.5;">👥</span>
+        </div>
       </div>
       <div class="card highlighted">
         <div class="card-label">Click-Through Rate</div>
-        <h2 class="card-value" id="kpi-ctr">—</h2>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <h2 class="card-value" id="kpi-ctr">—</h2>
+          <span style="font-size: 1.5rem; opacity: 0.5;">📈</span>
+        </div>
       </div>
     </div>
 
@@ -224,46 +244,46 @@
         <div>
           <h3>Devices</h3>
           <div class="table-wrapper">
-          <table id="devices">
-            <thead>
-              <tr>
-                <th>Device</th>
-                <th style="width:80px;text-align:right">Pageviews</th>
-                <th style="width:80px;text-align:right">Uniques</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+            <table id="devices">
+              <thead>
+                <tr>
+                  <th>Device</th>
+                  <th style="width:80px;text-align:right">Pageviews</th>
+                  <th style="width:80px;text-align:right">Uniques</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </div>
         </div>
         <div>
           <h3>Operating Systems</h3>
           <div class="table-wrapper">
-          <table id="operating-systems">
-            <thead>
-              <tr>
-                <th>OS</th>
-                <th style="width:80px;text-align:right">Pageviews</th>
-                <th style="width:80px;text-align:right">Uniques</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+            <table id="operating-systems">
+              <thead>
+                <tr>
+                  <th>OS</th>
+                  <th style="width:80px;text-align:right">Pageviews</th>
+                  <th style="width:80px;text-align:right">Uniques</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </div>
         </div>
         <div>
           <h3>Browsers</h3>
           <div class="table-wrapper">
-          <table id="browsers">
-            <thead>
-              <tr>
-                <th>Browser</th>
-                <th style="width:80px;text-align:right">Pageviews</th>
-                <th style="width:80px;text-align:right">Uniques</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+            <table id="browsers">
+              <thead>
+                <tr>
+                  <th>Browser</th>
+                  <th style="width:80px;text-align:right">Pageviews</th>
+                  <th style="width:80px;text-align:right">Uniques</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -275,4 +295,5 @@
     </div>
   </div>
 </body>
+
 </html>
