@@ -117,6 +117,57 @@
     tooltipEl.style.top = top + 'px';
   }
 
+  /** Build a single tooltip row and append it to the container */
+  function buildTooltipRow(container, color, label, value) {
+    const row = document.createElement('div');
+    row.className = 'tooltip-row';
+    const dot = document.createElement('div');
+    dot.className = 'tooltip-dot';
+    dot.style.background = color;
+    const lbl = document.createElement('span');
+    lbl.className = 'tooltip-label';
+    lbl.textContent = label;
+    const val = document.createElement('span');
+    val.className = 'tooltip-value';
+    val.textContent = String(value);
+    row.appendChild(dot);
+    row.appendChild(lbl);
+    row.appendChild(val);
+    container.appendChild(row);
+  }
+
+  /** Draw a single heatmap cell with optional hover highlight */
+  function drawHeatmapCell(ctx, opts) {
+    const { day, hour, cellWidth, cellHeight, dataMap, maxViews, hoverDay, hoverHour } = opts;
+    const key = `${hour}-${day}`;
+    const views = dataMap[key] || 0;
+    const intensity = views / maxViews;
+
+    const r = Math.floor(19 + (166 - 19) * intensity);
+    const g = Math.floor(15 + (107 - 15) * intensity);
+    const b = Math.floor(27 + (197 - 27) * intensity);
+
+    const cx = 60 + hour * cellWidth;
+    const cy = 30 + day * cellHeight;
+
+    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+    ctx.fillRect(cx, cy, cellWidth - 1, cellHeight - 1);
+
+    if (day === hoverDay && hour === hoverHour) {
+      ctx.strokeStyle = '#E5B8C7';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(cx, cy, cellWidth - 1, cellHeight - 1);
+    }
+
+    if (views > 0) {
+      ctx.fillStyle = intensity > 0.5 ? '#F0EDF4' : '#6A5A7E';
+      ctx.font = 'bold 10px Inter';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(views, cx + cellWidth / 2, cy + cellHeight / 2);
+    }
+  }
+
   function showAlert(msg, type = 'error') {
     els.alert.innerHTML = '';
     const alertDiv = document.createElement('div');
@@ -229,42 +280,40 @@
     setupSortableHeaders(tbody, rows, cols);
   }
 
+  /** Compare two row values for sort */
+  function compareRowValues(a, b, col, dir) {
+    let av = a[col], bv = b[col];
+    if (typeof av === 'number' && typeof bv === 'number') {
+      return dir === 'asc' ? av - bv : bv - av;
+    }
+    av = String(av || '').toLowerCase();
+    bv = String(bv || '').toLowerCase();
+    const cmp = av.localeCompare(bv);
+    return dir === 'asc' ? cmp : -cmp;
+  }
+
   function setupSortableHeaders(tbody, rows, cols) {
     const thead = tbody.closest('table')?.querySelector('thead');
     if (!thead) return;
     const ths = thead.querySelectorAll('th');
     ths.forEach((th, idx) => {
-      // Remove stale listener on data reload so sort uses fresh rows
-      if (th._sortHandler) {
-        th.removeEventListener('click', th._sortHandler);
-      }
+      if (th._sortHandler) th.removeEventListener('click', th._sortHandler);
       th.classList.add('sortable');
       th._sortHandler = () => {
         const state = sortStates.get(tbody) || { col: null, dir: 'asc' };
         const col = cols[idx];
+        let newDir = 'desc';
         if (state.col === col) {
-          state.dir = state.dir === 'asc' ? 'desc' : 'asc';
-        } else {
-          state.col = col;
-          state.dir = 'desc';
+          newDir = state.dir === 'asc' ? 'desc' : 'asc';
         }
+        state.dir = newDir;
+        state.col = col;
         sortStates.set(tbody, state);
 
-        // Update header classes
         ths.forEach(t => t.classList.remove('sort-asc', 'sort-desc'));
         th.classList.add(state.dir === 'asc' ? 'sort-asc' : 'sort-desc');
 
-        // Sort and re-render
-        const sorted = [...rows].sort((a, b) => {
-          let av = a[col], bv = b[col];
-          if (typeof av === 'number' && typeof bv === 'number') {
-            return state.dir === 'asc' ? av - bv : bv - av;
-          }
-          av = String(av || '').toLowerCase();
-          bv = String(bv || '').toLowerCase();
-          const cmp = av.localeCompare(bv);
-          return state.dir === 'asc' ? cmp : -cmp;
-        });
+        const sorted = [...rows].sort((a, b) => compareRowValues(a, b, col, state.dir));
         renderTable(tbody, sorted, cols);
       };
       th.addEventListener('click', th._sortHandler);
@@ -525,30 +574,14 @@
 
         // Build tooltip safely (textContent, no innerHTML XSS)
         const s = series[nearest];
-        chartTooltipEl.textContent = ''; // clear
+        chartTooltipEl.textContent = '';
         const dateDiv = document.createElement('div');
         dateDiv.className = 'tooltip-date';
         dateDiv.textContent = s.day || 'N/A';
         chartTooltipEl.appendChild(dateDiv);
 
-        [{ color: '#A66BC5', label: 'Pageviews', value: s.pageviews },
-         { color: '#E5B8C7', label: 'Clicks', value: s.clicks }].forEach(item => {
-          const row = document.createElement('div');
-          row.className = 'tooltip-row';
-          const dot = document.createElement('div');
-          dot.className = 'tooltip-dot';
-          dot.style.background = item.color;
-          const lbl = document.createElement('span');
-          lbl.className = 'tooltip-label';
-          lbl.textContent = item.label;
-          const val = document.createElement('span');
-          val.className = 'tooltip-value';
-          val.textContent = formatNumber(item.value || 0);
-          row.appendChild(dot);
-          row.appendChild(lbl);
-          row.appendChild(val);
-          chartTooltipEl.appendChild(row);
-        });
+        buildTooltipRow(chartTooltipEl, '#A66BC5', 'Pageviews', formatNumber(s.pageviews || 0));
+        buildTooltipRow(chartTooltipEl, '#E5B8C7', 'Clicks', formatNumber(s.clicks || 0));
 
         chartTooltipEl.classList.add('visible');
         positionTooltip(chartTooltipEl, clientX, clientY);
@@ -662,35 +695,7 @@
     // Draw cells
     for (let day = 0; day < 7; day++) {
       for (let hour = 0; hour < 24; hour++) {
-        const key = `${hour}-${day}`;
-        const views = dataMap[key] || 0;
-        const intensity = views / maxViews;
-        const isHovered = day === hoverDay && hour === hoverHour;
-
-        const r = Math.floor(19 + (166 - 19) * intensity);
-        const g = Math.floor(15 + (107 - 15) * intensity);
-        const b = Math.floor(27 + (197 - 27) * intensity);
-
-        const cx = 60 + hour * cellWidth;
-        const cy = 30 + day * cellHeight;
-
-        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-        ctx.fillRect(cx, cy, cellWidth - 1, cellHeight - 1);
-
-        // Hover highlight border
-        if (isHovered) {
-          ctx.strokeStyle = '#E5B8C7';
-          ctx.lineWidth = 2;
-          ctx.strokeRect(cx, cy, cellWidth - 1, cellHeight - 1);
-        }
-
-        if (views > 0) {
-          ctx.fillStyle = intensity > 0.5 ? '#F0EDF4' : '#6A5A7E';
-          ctx.font = 'bold 10px Inter';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(views, cx + cellWidth / 2, cy + cellHeight / 2);
-        }
+        drawHeatmapCell(ctx, { day, hour, cellWidth, cellHeight, dataMap, maxViews, hoverDay, hoverHour });
       }
     }
 
