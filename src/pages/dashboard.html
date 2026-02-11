@@ -12,10 +12,21 @@
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
-  <script src="../js/lib/config.js" defer></script>
-  <script src="../js/services/auth.js" defer></script>
-  <script src="../js/services/api.js" defer></script>
-  <script src="../js/services/dashboard.js" defer></script>
+  <!-- DEV: When ?mock=true, load mock stubs instead of real services -->
+  <script>
+    (function() {
+      var isMock = new URLSearchParams(location.search).get('mock') === 'true';
+      if (isMock) {
+        document.write('<script src="../js/mock-data.js"><' + '/script>');
+        document.write('<script src="../js/services/dashboard.js" defer><' + '/script>');
+      } else {
+        document.write('<script src="../js/lib/config.js" defer><' + '/script>');
+        document.write('<script src="../js/services/auth.js" defer><' + '/script>');
+        document.write('<script src="../js/services/api.js" defer><' + '/script>');
+        document.write('<script src="../js/services/dashboard.js" defer><' + '/script>');
+      }
+    })();
+  </script>
   <link rel="canonical" href="/src/pages/dashboard.html" />
   <meta name="robots" content="noindex" />
   <meta http-equiv="Cache-Control" content="no-store" />

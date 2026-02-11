@@ -78,6 +78,45 @@
   let map = null;
   let markerLayer = null;
 
+  // =========================================================================
+  // INTERACTIVE STATE
+  // =========================================================================
+  let chartState = { series: null, scaleX: null, scaleY: null, margin: 0, maxY: 0, pointCount: 0 };
+  let heatmapState = { data: null, cellWidth: 0, cellHeight: 0, maxViews: 1, dataMap: {} };
+  let chartTooltipEl = null;
+  let heatmapTooltipEl = null;
+  let chartHoverRafId = null;
+  let heatmapHoverRafId = null;
+
+  /** Escape HTML special characters to prevent XSS injection */
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+  }
+
+  function createTooltip(id) {
+    let el = document.getElementById(id);
+    if (!el) {
+      el = document.createElement('div');
+      el.id = id;
+      el.className = 'chart-tooltip';
+      document.body.appendChild(el);
+    }
+    return el;
+  }
+
+  function positionTooltip(tooltipEl, clientX, clientY) {
+    const pad = 14;
+    const rect = tooltipEl.getBoundingClientRect();
+    let left = clientX + pad;
+    let top = clientY - pad - rect.height;
+    if (left + rect.width > window.innerWidth - 10) left = clientX - pad - rect.width;
+    if (top < 10) top = clientY + pad;
+    tooltipEl.style.left = left + 'px';
+    tooltipEl.style.top = top + 'px';
+  }
+
   function showAlert(msg, type = 'error') {
     els.alert.innerHTML = '';
     const alertDiv = document.createElement('div');
@@ -95,14 +134,40 @@
   }
 
 
+  // =========================================================================
+  // ANIMATED KPI COUNTERS
+  // =========================================================================
+  function animateValue(el, target, suffix, duration) {
+    const start = performance.now();
+    const isPercent = suffix === '%';
+    const from = 0;
+    function tick(now) {
+      const elapsed = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - elapsed, 3); // easeOutCubic
+      const current = from + (target - from) * ease;
+      if (isPercent) {
+        el.textContent = current.toFixed(1) + suffix;
+      } else {
+        el.textContent = formatNumber(Math.round(current));
+      }
+      if (elapsed < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
 
   function renderKPIs(totals) {
-    els.kpiPageviews.textContent = formatNumber(totals.pageviews || 0);
-    els.kpiClicks.textContent = formatNumber(totals.clicks || 0);
-    els.kpiUniques.textContent = formatNumber(totals.uniques || 0);
+    animateValue(els.kpiPageviews, totals.pageviews || 0, '', 700);
+    animateValue(els.kpiClicks, totals.clicks || 0, '', 700);
+    animateValue(els.kpiUniques, totals.uniques || 0, '', 700);
     const ctr = (totals.ctr || 0) * 100;
-    els.kpiCtr.textContent = ctr.toFixed(1) + '%';
+    animateValue(els.kpiCtr, ctr, '%', 700);
   }
+
+  // =========================================================================
+  // SORTABLE TABLES WITH BAR INDICATORS
+  // =========================================================================
+  const numericCols = new Set(['clicks', 'uniques', 'pageviews']);
+  const sortStates = new Map(); // tbodyEl -> { col, dir }
 
   function renderTable(tbody, rows, cols) {
     tbody.innerHTML = '';
@@ -112,34 +177,144 @@
       td.colSpan = cols.length;
       td.style.textAlign = 'center';
       td.style.padding = '40px 20px';
-      td.style.color = '#6B3A8A';
+      td.style.color = 'var(--color-text-muted)';
       td.textContent = 'No data available';
       tr.appendChild(td);
       tbody.appendChild(tr);
       return;
     }
+
+    // Compute max for each numeric column (for bar indicators)
+    const maxes = {};
+    cols.forEach(c => {
+      if (numericCols.has(c)) {
+        maxes[c] = Math.max(1, ...rows.map(r => r[c] || 0));
+      }
+    });
+
     rows.forEach(r => {
       const tr = document.createElement('tr');
       cols.forEach((c, idx) => {
         const td = document.createElement('td');
-        let val = r[c] == null ? '' : String(r[c]);
-        if ((c === 'clicks' || c === 'uniques' || c === 'pageviews') && r[c] != null) {
-          val = formatNumber(r[c]);
+        const rawVal = r[c];
+        const isNum = numericCols.has(c) && rawVal != null;
+
+        if (isNum) {
+          td.style.textAlign = 'right';
+          // Bar indicator wrapper
+          const wrapper = document.createElement('div');
+          wrapper.className = 'bar-wrapper';
+          const bar = document.createElement('div');
+          bar.className = 'bar-indicator';
+          const pct = Math.max(2, (rawVal / maxes[c]) * 100);
+          bar.style.width = pct + '%';
+          bar.style.minWidth = '4px';
+          bar.style.maxWidth = '60px';
+          const valSpan = document.createElement('span');
+          valSpan.className = 'bar-value';
+          valSpan.textContent = formatNumber(rawVal);
+          wrapper.appendChild(bar);
+          wrapper.appendChild(valSpan);
+          td.appendChild(wrapper);
+        } else {
+          if (idx > 0) td.style.textAlign = 'right';
+          td.textContent = rawVal == null ? '' : String(rawVal);
         }
-        if (idx > 0) td.style.textAlign = 'right';
-        td.textContent = val;
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
     });
+
+    // Setup sortable headers
+    setupSortableHeaders(tbody, rows, cols);
   }
 
-  function renderChart(series) {
+  function setupSortableHeaders(tbody, rows, cols) {
+    const thead = tbody.closest('table')?.querySelector('thead');
+    if (!thead) return;
+    const ths = thead.querySelectorAll('th');
+    ths.forEach((th, idx) => {
+      // Remove stale listener on data reload so sort uses fresh rows
+      if (th._sortHandler) {
+        th.removeEventListener('click', th._sortHandler);
+      }
+      th.classList.add('sortable');
+      th._sortHandler = () => {
+        const state = sortStates.get(tbody) || { col: null, dir: 'asc' };
+        const col = cols[idx];
+        if (state.col === col) {
+          state.dir = state.dir === 'asc' ? 'desc' : 'asc';
+        } else {
+          state.col = col;
+          state.dir = 'desc';
+        }
+        sortStates.set(tbody, state);
+
+        // Update header classes
+        ths.forEach(t => t.classList.remove('sort-asc', 'sort-desc'));
+        th.classList.add(state.dir === 'asc' ? 'sort-asc' : 'sort-desc');
+
+        // Sort and re-render
+        const sorted = [...rows].sort((a, b) => {
+          let av = a[col], bv = b[col];
+          if (typeof av === 'number' && typeof bv === 'number') {
+            return state.dir === 'asc' ? av - bv : bv - av;
+          }
+          av = String(av || '').toLowerCase();
+          bv = String(bv || '').toLowerCase();
+          const cmp = av.localeCompare(bv);
+          return state.dir === 'asc' ? cmp : -cmp;
+        });
+        renderTable(tbody, sorted, cols);
+      };
+      th.addEventListener('click', th._sortHandler);
+    });
+  }
+
+  // =========================================================================
+  // CHART RENDERING — Bézier curves, gradient fills, hover interaction
+  // =========================================================================
+  function drawBezierLine(ctx, points) {
+    if (points.length < 2) return;
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i - 1];
+      const curr = points[i];
+      const cpx = (prev.x + curr.x) / 2;
+      ctx.bezierCurveTo(cpx, prev.y, cpx, curr.y, curr.x, curr.y);
+    }
+    ctx.stroke();
+  }
+
+  function drawGradientFill(ctx, points, bottomY, r, g, b, alpha) {
+    if (points.length < 2) return;
+    const minY = Math.min(...points.map(p => p.y));
+    const grad = ctx.createLinearGradient(0, minY, 0, bottomY);
+    grad.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${alpha})`);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i - 1];
+      const curr = points[i];
+      const cpx = (prev.x + curr.x) / 2;
+      ctx.bezierCurveTo(cpx, prev.y, cpx, curr.y, curr.x, curr.y);
+    }
+    ctx.lineTo(points[points.length - 1].x, bottomY);
+    ctx.lineTo(points[0].x, bottomY);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function renderChart(series, hoverIdx) {
+    if (!els.chart) return;
     const ctx = els.chart.getContext('2d');
     ctx.clearRect(0, 0, els.chart.width, els.chart.height);
 
     if (!series || series.length === 0) {
-      ctx.fillStyle = '#6B3A8A';
+      ctx.fillStyle = '#9B8AAE';
       ctx.font = '16px Inter, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -151,6 +326,7 @@
     const margin = 48;
     const innerW = w - margin * 2;
     const innerH = h - margin * 2;
+    const bottomY = margin + innerH;
 
     const pageviews = series.map(s => s.pageviews || 0);
     const clicks = series.map(s => s.clicks || 0);
@@ -165,8 +341,11 @@
       return margin + innerH - (v / maxY) * innerH;
     }
 
+    // Store for hover interaction
+    chartState = { series, scaleX, scaleY, margin, maxY, pointCount };
+
     // Background grid
-    ctx.strokeStyle = 'rgba(107, 58, 138, 0.08)';
+    ctx.strokeStyle = 'rgba(139, 75, 168, 0.12)';
     ctx.lineWidth = 1;
     for (let i = 0; i <= 4; i++) {
       const y = margin + (i / 4) * innerH;
@@ -176,29 +355,28 @@
       ctx.stroke();
     }
 
-    // Axes
-    ctx.strokeStyle = 'rgba(107, 58, 138, 0.3)';
+    // Y-axis
+    ctx.strokeStyle = 'rgba(139, 75, 168, 0.35)';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(margin, margin);
     ctx.lineTo(margin, h - margin);
-    ctx.lineTo(w - margin, h - margin);
     ctx.stroke();
 
     // Y-axis labels
-    ctx.fillStyle = '#6B3A8A';
+    ctx.fillStyle = '#9B8AAE';
     ctx.font = 'bold 11px Inter, sans-serif';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
     for (let i = 0; i <= 4; i++) {
+      const val = Math.round((maxY / 4) * (4 - i));
       const y = margin + (i / 4) * innerH;
-      const val = Math.round(maxY * (1 - i / 4));
-      ctx.fillText(val, margin - 12, y);
+      ctx.fillText(String(val), margin - 8, y);
     }
 
     // X-axis labels
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#6B3A8A';
+    ctx.fillStyle = '#9B8AAE';
     ctx.font = '11px Inter, sans-serif';
     const labelStep = Math.max(1, Math.floor(series.length / 6));
     series.forEach((s, i) => {
@@ -215,92 +393,173 @@
       }
     });
 
-    // Bar chart background (for single point)
     if (pointCount === 1) {
+      // Bar chart for single data point
       const x = scaleX(0);
       const barWidth = 40;
-
-      // Pageviews bar (purple)
       const pv = pageviews[0] || 0;
       const pvHeight = (pv / maxY) * innerH;
-      ctx.fillStyle = 'rgba(107, 58, 138, 0.7)';
+      ctx.fillStyle = 'rgba(166, 107, 197, 0.7)';
       ctx.fillRect(x - barWidth - 8, scaleY(pv), barWidth, pvHeight);
-
-      // Clicks bar (pink)
       const cl = clicks[0] || 0;
       const clHeight = (cl / maxY) * innerH;
-      ctx.fillStyle = 'rgba(246, 209, 221, 0.9)';
+      ctx.fillStyle = 'rgba(229, 184, 199, 0.85)';
       ctx.fillRect(x + 8, scaleY(cl), barWidth, clHeight);
-
-      // Value labels on bars
-      ctx.fillStyle = '#0f1720';
+      ctx.fillStyle = '#F0EDF4';
       ctx.font = 'bold 13px Inter, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'bottom';
       ctx.fillText(String(pv), x - barWidth / 2 - 8, scaleY(pv) - 4);
       ctx.fillText(String(cl), x + barWidth / 2 + 8, scaleY(cl) - 4);
     } else {
-      // Line chart for multiple points
-      // Pageviews line (purple)
-      ctx.strokeStyle = '#6B3A8A';
+      // Build coordinate arrays
+      const pvPoints = series.map((s, i) => ({ x: scaleX(i), y: scaleY(s.pageviews || 0) }));
+      const clPoints = series.map((s, i) => ({ x: scaleX(i), y: scaleY(s.clicks || 0) }));
+
+      // Gradient fills under curves
+      drawGradientFill(ctx, pvPoints, bottomY, 166, 107, 197, 0.2);
+      drawGradientFill(ctx, clPoints, bottomY, 229, 184, 199, 0.12);
+
+      // Pageview Bézier line
+      ctx.strokeStyle = '#A66BC5';
       ctx.lineWidth = 3;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.beginPath();
-      series.forEach((s, i) => {
-        const x = scaleX(i);
-        const y = scaleY(s.pageviews || 0);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
+      drawBezierLine(ctx, pvPoints);
 
-      // Clicks line (pink)
-      ctx.strokeStyle = '#F6D1DD';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      series.forEach((s, i) => {
-        const x = scaleX(i);
-        const y = scaleY(s.clicks || 0);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
+      // Clicks Bézier line
+      ctx.strokeStyle = '#E5B8C7';
+      ctx.lineWidth = 2.5;
+      drawBezierLine(ctx, clPoints);
 
       // Data point circles
-      ctx.fillStyle = '#6B3A8A';
       series.forEach((s, i) => {
-        const x = scaleX(i);
-        const y = scaleY(s.pageviews || 0);
+        const isHovered = i === hoverIdx;
+        ctx.fillStyle = '#A66BC5';
         ctx.beginPath();
-        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.arc(pvPoints[i].x, pvPoints[i].y, isHovered ? 7 : 4, 0, Math.PI * 2);
         ctx.fill();
+        if (isHovered) {
+          ctx.strokeStyle = 'rgba(166, 107, 197, 0.3)';
+          ctx.lineWidth = 4;
+          ctx.stroke();
+        }
+      });
+      series.forEach((s, i) => {
+        const isHovered = i === hoverIdx;
+        ctx.fillStyle = '#E5B8C7';
+        ctx.beginPath();
+        ctx.arc(clPoints[i].x, clPoints[i].y, isHovered ? 7 : 4, 0, Math.PI * 2);
+        ctx.fill();
+        if (isHovered) {
+          ctx.strokeStyle = 'rgba(229, 184, 199, 0.3)';
+          ctx.lineWidth = 4;
+          ctx.stroke();
+        }
       });
 
-      ctx.fillStyle = '#F6D1DD';
-      series.forEach((s, i) => {
-        const x = scaleX(i);
-        const y = scaleY(s.clicks || 0);
+      // Vertical crosshair at hovered index
+      if (hoverIdx != null && hoverIdx >= 0 && hoverIdx < series.length) {
+        const hx = scaleX(hoverIdx);
+        ctx.save();
+        ctx.strokeStyle = 'rgba(240, 237, 244, 0.15)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
         ctx.beginPath();
-        ctx.arc(x, y, 4, 0, Math.PI * 2);
-        ctx.fill();
-      });
+        ctx.moveTo(hx, margin);
+        ctx.lineTo(hx, bottomY);
+        ctx.stroke();
+        ctx.restore();
+      }
     }
 
     // Legend
     ctx.font = 'bold 12px Inter, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-
-    ctx.fillStyle = '#6B3A8A';
+    ctx.fillStyle = '#A66BC5';
     ctx.fillRect(w - 200, margin, 14, 14);
-    ctx.fillStyle = '#0f1720';
+    ctx.fillStyle = '#F0EDF4';
     ctx.fillText('Pageviews', w - 180, margin);
-
-    ctx.fillStyle = '#F6D1DD';
+    ctx.fillStyle = '#E5B8C7';
     ctx.fillRect(w - 200, margin + 22, 14, 14);
-    ctx.fillStyle = '#0f1720';
+    ctx.fillStyle = '#F0EDF4';
     ctx.fillText('Clicks', w - 180, margin + 22);
+  }
+
+  // =========================================================================
+  // CHART HOVER INTERACTION
+  // =========================================================================
+  function initChartHover() {
+    if (!els.chart) return;
+    chartTooltipEl = createTooltip('chart-tooltip');
+
+    els.chart.addEventListener('mousemove', (e) => {
+      const clientX = e.clientX, clientY = e.clientY;
+      if (chartHoverRafId) return; // throttle: skip if a frame is already queued
+      chartHoverRafId = requestAnimationFrame(() => {
+        chartHoverRafId = null;
+        const { series, scaleX, pointCount } = chartState;
+        if (!series || series.length < 2) return;
+
+        const rect = els.chart.getBoundingClientRect();
+        const canvasX = (clientX - rect.left) * (els.chart.width / rect.width);
+
+        // Find nearest data point index
+        let nearest = 0;
+        let minDist = Infinity;
+        for (let i = 0; i < series.length; i++) {
+          const dist = Math.abs(canvasX - scaleX(i));
+          if (dist < minDist) { minDist = dist; nearest = i; }
+        }
+
+        // Only show if close enough
+        if (minDist > (els.chart.width / pointCount) * 0.7) {
+          chartTooltipEl.classList.remove('visible');
+          renderChart(series, -1);
+          return;
+        }
+
+        // Re-render with hover highlight
+        renderChart(series, nearest);
+
+        // Build tooltip safely (textContent, no innerHTML XSS)
+        const s = series[nearest];
+        chartTooltipEl.textContent = ''; // clear
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'tooltip-date';
+        dateDiv.textContent = s.day || 'N/A';
+        chartTooltipEl.appendChild(dateDiv);
+
+        [{ color: '#A66BC5', label: 'Pageviews', value: s.pageviews },
+         { color: '#E5B8C7', label: 'Clicks', value: s.clicks }].forEach(item => {
+          const row = document.createElement('div');
+          row.className = 'tooltip-row';
+          const dot = document.createElement('div');
+          dot.className = 'tooltip-dot';
+          dot.style.background = item.color;
+          const lbl = document.createElement('span');
+          lbl.className = 'tooltip-label';
+          lbl.textContent = item.label;
+          const val = document.createElement('span');
+          val.className = 'tooltip-value';
+          val.textContent = formatNumber(item.value || 0);
+          row.appendChild(dot);
+          row.appendChild(lbl);
+          row.appendChild(val);
+          chartTooltipEl.appendChild(row);
+        });
+
+        chartTooltipEl.classList.add('visible');
+        positionTooltip(chartTooltipEl, clientX, clientY);
+      });
+    });
+
+    els.chart.addEventListener('mouseleave', () => {
+      if (chartHoverRafId) { cancelAnimationFrame(chartHoverRafId); chartHoverRafId = null; }
+      chartTooltipEl.classList.remove('visible');
+      if (chartState.series) renderChart(chartState.series, -1);
+    });
   }
 
   function initMap() {
@@ -341,16 +600,17 @@
 
       const circle = L.circleMarker([lat, lon], {
         radius: radius,
-        fillColor: '#6B3A8A',
-        color: '#fff',
+        fillColor: '#A66BC5',
+        color: 'rgba(166, 107, 197, 0.6)',
         weight: 2,
         opacity: 0.8,
         fillOpacity: 0.6
       });
 
+      // Sanitize user-sourced strings to prevent XSS in Leaflet popup
       circle.bindPopup(`
         <div style="font-family: Inter, sans-serif;">
-          <strong style="color: #6B3A8A;">${city}, ${country}</strong><br>
+          <strong style="color: #A66BC5;">${escapeHtml(city)}, ${escapeHtml(country)}</strong><br>
           <span style="font-size: 0.9em;">
             ${pageviews} pageview${pageviews === 1 ? '' : 's'}<br>
             ${uniques} unique visitor${uniques === 1 ? '' : 's'}
@@ -372,7 +632,12 @@
     }
   }
 
-  function renderHeatmap(peakHours) {
+  // =========================================================================
+  // HEATMAP RENDERING + HOVER INTERACTION
+  // =========================================================================
+  const HEATMAP_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  function renderHeatmap(peakHours, hoverDay, hoverHour) {
     if (!els.heatmap) return;
     const canvas = els.heatmap;
     const ctx = canvas.getContext('2d');
@@ -381,11 +646,8 @@
 
     ctx.clearRect(0, 0, w, h);
 
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const cellWidth = (w - 60) / 24;
     const cellHeight = (h - 40) / 7;
-
-    // Create data map
     const dataMap = {};
     let maxViews = 1;
     (peakHours || []).forEach(item => {
@@ -394,48 +656,130 @@
       maxViews = Math.max(maxViews, item.pageviews || 0);
     });
 
+    // Store state for hover
+    heatmapState = { data: peakHours, cellWidth, cellHeight, maxViews, dataMap };
+
     // Draw cells
     for (let day = 0; day < 7; day++) {
       for (let hour = 0; hour < 24; hour++) {
         const key = `${hour}-${day}`;
         const views = dataMap[key] || 0;
         const intensity = views / maxViews;
+        const isHovered = day === hoverDay && hour === hoverHour;
 
-        // Purple gradient based on intensity
-        const r = Math.floor(107 + (255 - 107) * (1 - intensity));
-        const g = Math.floor(58 + (255 - 58) * (1 - intensity));
-        const b = Math.floor(138 + (255 - 138) * (1 - intensity));
+        const r = Math.floor(19 + (166 - 19) * intensity);
+        const g = Math.floor(15 + (107 - 15) * intensity);
+        const b = Math.floor(27 + (197 - 27) * intensity);
+
+        const cx = 60 + hour * cellWidth;
+        const cy = 30 + day * cellHeight;
 
         ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-        ctx.fillRect(60 + hour * cellWidth, 30 + day * cellHeight, cellWidth - 1, cellHeight - 1);
+        ctx.fillRect(cx, cy, cellWidth - 1, cellHeight - 1);
 
-        // Add text for significant values
+        // Hover highlight border
+        if (isHovered) {
+          ctx.strokeStyle = '#E5B8C7';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(cx, cy, cellWidth - 1, cellHeight - 1);
+        }
+
         if (views > 0) {
-          ctx.fillStyle = intensity > 0.5 ? '#fff' : '#6B3A8A';
+          ctx.fillStyle = intensity > 0.5 ? '#F0EDF4' : '#6A5A7E';
           ctx.font = 'bold 10px Inter';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(views, 60 + hour * cellWidth + cellWidth / 2, 30 + day * cellHeight + cellHeight / 2);
+          ctx.fillText(views, cx + cellWidth / 2, cy + cellHeight / 2);
         }
       }
     }
 
-    // Y-axis labels (days)
-    ctx.fillStyle = '#6B3A8A';
+    // Y-axis labels
+    ctx.fillStyle = '#9B8AAE';
     ctx.font = 'bold 11px Inter';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
-    days.forEach((day, i) => {
+    HEATMAP_DAYS.forEach((day, i) => {
       ctx.fillText(day, 50, 30 + i * cellHeight + cellHeight / 2);
     });
 
-    // X-axis labels (hours)
+    // X-axis labels
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.font = '10px Inter';
-    for (let h = 0; h < 24; h += 3) {
-      ctx.fillText(h + ':00', 60 + h * cellWidth + cellWidth / 2, 10);
+    for (let hr = 0; hr < 24; hr += 3) {
+      ctx.fillText(hr + ':00', 60 + hr * cellWidth + cellWidth / 2, 10);
     }
+  }
+
+  function initHeatmapHover() {
+    if (!els.heatmap) return;
+    heatmapTooltipEl = createTooltip('heatmap-tooltip');
+
+    els.heatmap.addEventListener('mousemove', (e) => {
+      const clientX = e.clientX, clientY = e.clientY;
+      if (heatmapHoverRafId) return; // throttle
+      heatmapHoverRafId = requestAnimationFrame(() => {
+        heatmapHoverRafId = null;
+        const { data, cellWidth, cellHeight, dataMap } = heatmapState;
+        if (!data) return;
+
+        const rect = els.heatmap.getBoundingClientRect();
+        const mx = (clientX - rect.left) * (els.heatmap.width / rect.width);
+        const my = (clientY - rect.top) * (els.heatmap.height / rect.height);
+
+        const hour = Math.floor((mx - 60) / cellWidth);
+        const day = Math.floor((my - 30) / cellHeight);
+
+        if (hour < 0 || hour >= 24 || day < 0 || day >= 7) {
+          heatmapTooltipEl.classList.remove('visible');
+          renderHeatmap(data, -1, -1);
+          return;
+        }
+
+        renderHeatmap(data, day, hour);
+
+        const key = `${hour}-${day}`;
+        const views = dataMap[key] || 0;
+        let hourStr;
+        if (hour === 0) hourStr = '12 AM';
+        else if (hour < 12) hourStr = hour + ' AM';
+        else if (hour === 12) hourStr = '12 PM';
+        else hourStr = (hour - 12) + ' PM';
+
+        // Build tooltip safely (textContent, no innerHTML XSS)
+        heatmapTooltipEl.textContent = '';
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'tooltip-date';
+        dateDiv.textContent = HEATMAP_DAYS[day] + ' \u2014 ' + hourStr;
+        heatmapTooltipEl.appendChild(dateDiv);
+
+        const row = document.createElement('div');
+        row.className = 'tooltip-row';
+        const dot = document.createElement('div');
+        dot.className = 'tooltip-dot';
+        dot.style.background = '#A66BC5';
+        const lbl = document.createElement('span');
+        lbl.className = 'tooltip-label';
+        lbl.textContent = 'Pageviews';
+        const val = document.createElement('span');
+        val.className = 'tooltip-value';
+        val.textContent = String(views);
+        row.appendChild(dot);
+        row.appendChild(lbl);
+        row.appendChild(val);
+        heatmapTooltipEl.appendChild(row);
+
+        heatmapTooltipEl.classList.add('visible');
+        positionTooltip(heatmapTooltipEl, clientX, clientY);
+      });
+    });
+
+    els.heatmap.addEventListener('mouseleave', () => {
+      if (heatmapHoverRafId) { cancelAnimationFrame(heatmapHoverRafId); heatmapHoverRafId = null; }
+      heatmapTooltipEl.classList.remove('visible');
+      if (heatmapState.data) renderHeatmap(heatmapState.data, -1, -1);
+    });
   }
 
   function renderActivityFeed(activity) {
@@ -528,8 +872,7 @@
       }
       showAlert('✓ Data loaded successfully', 'success');
     } catch (err) {
-      showAlert('❌ Error: ' + err.message, 'error');
-      updateStatus(false);
+      showAlert('\u274C Error: ' + err.message, 'error');
     } finally {
       els.load.classList.remove('loading');
     }
@@ -599,8 +942,9 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    // Auth check and dashboard init already happened above
-    // This is just for additional event listener setup
+    // Initialize chart and heatmap hover interactions
+    initChartHover();
+    initHeatmapHover();
   });
 
   els.range.addEventListener('change', onRangeChange);
