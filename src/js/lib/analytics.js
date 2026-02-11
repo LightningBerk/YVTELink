@@ -1,5 +1,5 @@
 (() => {
-  const cfg = window.ANALYTICS_CONFIG || {};
+  const cfg = globalThis.ANALYTICS_CONFIG || {};
   const API_BASE = cfg.ANALYTICS_API_BASE || '';
   const ENABLED = !!cfg.ANALYTICS_ENABLED;
   const REQUIRE_CONSENT = !!cfg.ANALYTICS_REQUIRE_CONSENT;
@@ -10,8 +10,8 @@
   const LS_CONSENT = 'analytics_consent';
 
   function uuidv4(){
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-      const r = Math.random()*16|0, v = c === 'x' ? r : (r&0x3|0x8);
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replaceAll(/[xy]/g, c => {
+      const r = Math.trunc(Math.random() * 16), v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     });
   }
@@ -34,8 +34,8 @@
   function setAnalyticsConsent(val){
     localStorage.setItem(LS_CONSENT, val ? 'true' : 'false');
   }
-  window.setAnalyticsConsent = setAnalyticsConsent;
-  window.hasAnalyticsConsent = hasAnalyticsConsent;
+  globalThis.setAnalyticsConsent = setAnalyticsConsent;
+  globalThis.hasAnalyticsConsent = hasAnalyticsConsent;
 
   function captureUTMs(){
     const qs = new URLSearchParams(location.search);
@@ -99,8 +99,8 @@
           visitor_id,
           session_id,
           page_path: location.pathname,
-          link_id: a.getAttribute('data-link-id'),
-          label: a.getAttribute('data-label') || (a.textContent || '').trim() || null,
+          link_id: a.dataset.linkId,
+          label: a.dataset.label || (a.textContent || '').trim() || null,
           destination_url: a.href,
           referrer: document.referrer || null,
           ...utm

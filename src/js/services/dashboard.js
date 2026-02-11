@@ -292,6 +292,25 @@
     return dir === 'asc' ? cmp : -cmp;
   }
 
+  /** Apply sort to a table: update state, headers, re-render */
+  function applySortToTable(tbody, rows, cols, ths, th, idx) {
+    const state = sortStates.get(tbody) || { col: null, dir: 'asc' };
+    const col = cols[idx];
+    let newDir = 'desc';
+    if (state.col === col) {
+      newDir = state.dir === 'asc' ? 'desc' : 'asc';
+    }
+    state.dir = newDir;
+    state.col = col;
+    sortStates.set(tbody, state);
+
+    ths.forEach(t => t.classList.remove('sort-asc', 'sort-desc'));
+    th.classList.add(state.dir === 'asc' ? 'sort-asc' : 'sort-desc');
+
+    const sorted = [...rows].sort((a, b) => compareRowValues(a, b, col, state.dir));
+    renderTable(tbody, sorted, cols);
+  }
+
   function setupSortableHeaders(tbody, rows, cols) {
     const thead = tbody.closest('table')?.querySelector('thead');
     if (!thead) return;
@@ -299,23 +318,7 @@
     ths.forEach((th, idx) => {
       if (th._sortHandler) th.removeEventListener('click', th._sortHandler);
       th.classList.add('sortable');
-      th._sortHandler = () => {
-        const state = sortStates.get(tbody) || { col: null, dir: 'asc' };
-        const col = cols[idx];
-        let newDir = 'desc';
-        if (state.col === col) {
-          newDir = state.dir === 'asc' ? 'desc' : 'asc';
-        }
-        state.dir = newDir;
-        state.col = col;
-        sortStates.set(tbody, state);
-
-        ths.forEach(t => t.classList.remove('sort-asc', 'sort-desc'));
-        th.classList.add(state.dir === 'asc' ? 'sort-asc' : 'sort-desc');
-
-        const sorted = [...rows].sort((a, b) => compareRowValues(a, b, col, state.dir));
-        renderTable(tbody, sorted, cols);
-      };
+      th._sortHandler = () => applySortToTable(tbody, rows, cols, ths, th, idx);
       th.addEventListener('click', th._sortHandler);
     });
   }

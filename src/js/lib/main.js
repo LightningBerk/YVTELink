@@ -6,7 +6,7 @@
   try{
     const yearEl = document.getElementById('year');
     if (yearEl) yearEl.textContent = new Date().getFullYear();
-  }catch(e){}
+  } catch { /* non-critical: footer year */ }
 
   // --- Parallax (scroll position only) ---
   (function(){
@@ -35,7 +35,9 @@
 
       // Layer-specific transforms
       layers.forEach((layer, idx) => {
-        const mult = idx === 0 ? 40 : idx === 1 ? 90 : 160;
+        let mult = 160;
+        if (idx === 0) mult = 40;
+        else if (idx === 1) mult = 90;
         layer.style.transform = 'translate3d(-50%,' + (progress * mult) + 'px,0)';
       });
     }
