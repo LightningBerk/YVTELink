@@ -101,7 +101,7 @@
           page_path: location.pathname,
           link_id: a.dataset.linkId,
           label: a.dataset.label || (a.textContent || '').trim() || null,
-          destination_url: a.href,
+          destination_url: a.dataset.encHref ? atob(a.dataset.encHref) : a.href,
           referrer: document.referrer || null,
           ...utm
         };

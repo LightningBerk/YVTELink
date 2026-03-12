@@ -81,7 +81,7 @@
 
     function openModal(e) {
       e.preventDefault();
-      targetUrl = e.currentTarget.href;
+      targetUrl = e.currentTarget.dataset.encHref ? atob(e.currentTarget.dataset.encHref) : e.currentTarget.href;
       modal.setAttribute("aria-hidden", "false");
     }
 
