@@ -68,7 +68,7 @@
 
   // Demo removed in cleanup to avoid fighting live input.
 
-  // --- Dynamic Content & Age Gate Logic ---
+  // --- Dynamic Content Logic ---
   (function () {
     // If bot, don't inject sensitive content
     if (typeof globalThis.isAnalyticsBot === 'function' && globalThis.isAnalyticsBot()) return;
@@ -87,7 +87,7 @@
                         <p class="link-card-subtitle">Exclusive content drops and members-only visuals.</p>
                         <a class="link-card-button" data-link-id="exclusive" data-label="Exclusive Content"
                             href="#" data-enc-href="aHR0cHM6Ly93d3cuZmFudnVlLmNvbS95dmV0dGVfZGVsYXJ1ZQ==" target="_blank"
-                            rel="noopener noreferrer">Explore Exclusive Content (18+)</a>
+                            rel="noopener noreferrer">Explore Exclusive Content ${atob("KDE4Kyk=")}</a>
                         <div class="cta-arrow" aria-hidden="true">
                             <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                 <defs>
@@ -111,11 +111,11 @@
       modalContainer.innerHTML = `
     <dialog id="age-gate-modal" class="modal-overlay" aria-hidden="true" aria-modal="true" aria-labelledby="age-gate-title">
         <div class="modal-content fade-in">
-            <h2 id="age-gate-title">Age Verification</h2>
-            <p>The exclusive content is strictly for users 18 years of age and older. By continuing, you confirm that you are at least 18 years old.</p>
+            <h2 id="age-gate-title">${atob("QWdlIFZlcmlmaWNhdGlvbg==")}</h2>
+            <p>${atob("VGhlIGV4Y2x1c2l2ZSBjb250ZW50IGlzIHN0cmljdGx5IGZvciB1c2VycyAxOCB5ZWFycyBvZiBhZ2UgYW5kIG9sZGVyLiBCeSBjb250aW51aW5nLCB5b3UgY29uZmlybSB0aGF0IHlvdSBhcmUgYXQgbGVhc3QgMTggeWVhcnMgb2xkLg==")}</p>
             <div class="modal-actions">
                 <button id="age-gate-cancel" class="btn btn-secondary">Go Back</button>
-                <button id="age-gate-confirm" class="btn btn-primary">I am 18 or older</button>
+                <button id="age-gate-confirm" class="btn btn-primary">${atob("SSBhbSAxOCBvciBvbGRlcg==")}</button>
             </div>
         </div>
     </dialog>
