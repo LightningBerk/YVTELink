@@ -140,33 +140,8 @@
     <main id="main" role="main">
         <section class="link-gallery" aria-label="Featured links">
             <div class="link-gallery-inner">
-                <article class="link-card link-card-hero fade-in"
-                    style="--card-bg: url('/assets/images/exclusiveHero.png')">
-                    <div class="link-card-background" aria-hidden="true"></div>
-                    <div class="link-card-overlay" aria-hidden="true"></div>
-                    <div class="link-card-content">
-                        <p class="link-card-eyebrow">Exclusive</p>
-                        <h2>Exclusive Content</h2>
-                        <p class="link-card-subtitle">Exclusive content drops and members-only visuals.</p>
-                        <a class="link-card-button" data-link-id="exclusive" data-label="Exclusive Content"
-                            href="#" data-enc-href="aHR0cHM6Ly93d3cuZmFudnVlLmNvbS95dmV0dGVfZGVsYXJ1ZQ==" target="_blank"
-                            rel="noopener noreferrer">Explore Exclusive Content (18+)</a>
-                        <div class="cta-arrow" aria-hidden="true">
-                            <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                <defs>
-                                    <linearGradient id="ctaArrowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stop-color="#F6D1DD" />
-                                        <stop offset="100%" stop-color="#6B3A8A" />
-                                    </linearGradient>
-                                </defs>
-                                <path d="M12 46 L40 18 M40 18 L33 18 M40 18 L40 25" stroke="#000" stroke-width="9"
-                                    stroke-linecap="round" stroke-linejoin="round" fill="none" />
-                                <path d="M12 46 L40 18 M40 18 L33 18 M40 18 L40 25" stroke="url(#ctaArrowGrad)"
-                                    stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-                            </svg>
-                        </div>
-                    </div>
-                </article>
+                <!-- Container for dynamically injected Exclusive Content card -->
+                <div id="exclusive-link-container"></div>
 
                 <article class="link-card fade-in" style="--card-bg: url('/assets/images/instagramHero.png')">
                     <div class="link-card-background" aria-hidden="true"></div>
@@ -244,17 +219,8 @@
         </div>
     </footer>
 
-    <!-- Age Gate Modal for Exclusive Content -->
-    <dialog id="age-gate-modal" class="modal-overlay" aria-hidden="true" aria-modal="true" aria-labelledby="age-gate-title">
-        <div class="modal-content fade-in">
-            <h2 id="age-gate-title">Age Verification</h2>
-            <p>The exclusive content is strictly for users 18 years of age and older. By continuing, you confirm that you are at least 18 years old.</p>
-            <div class="modal-actions">
-                <button id="age-gate-cancel" class="btn btn-secondary">Go Back</button>
-                <button id="age-gate-confirm" class="btn btn-primary">I am 18 or older</button>
-            </div>
-        </div>
-    </dialog>
+    <!-- Container for dynamically injected Age Gate Modal -->
+    <div id="age-gate-container"></div>
 
     <script>
         // Konami Code Easter Egg - redirects to admin login

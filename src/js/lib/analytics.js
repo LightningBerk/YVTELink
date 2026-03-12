@@ -52,10 +52,26 @@
     try { return JSON.parse(sessionStorage.getItem(SS_UTM) || '{}'); } catch { return {}; }
   }
 
+  function isBot() {
+    const ua = navigator.userAgent.toLowerCase();
+    const bots = [
+      'bot', 'crawler', 'spider', 'slurp', 'inspect',
+      'headless', 'phantom', 'puppeteer', 'chrome-lighthouse',
+      'facebookexternalhit', 'instagram', 'twitterbot', 'tiktok'
+    ];
+    if (navigator.webdriver) return true;
+    return bots.some(b => ua.includes(b));
+  }
+  globalThis.isAnalyticsBot = isBot;
+
   function sendEvent(event){
     if (!ENABLED || !API_BASE) return;
     if (REQUIRE_CONSENT && !hasAnalyticsConsent()) return;
     const url = API_BASE.replace(/\/$/, '') + '/track';
+    
+    // Inject bot flag into all events
+    event.is_bot = isBot();
+
     const body = JSON.stringify(event);
     const headers = { 'Content-Type': 'application/json' };
     try {
@@ -87,27 +103,27 @@
   }
 
   function attachLinkClicks(){
-    const anchors = document.querySelectorAll('a[data-link-id][href]');
-    anchors.forEach(a => {
-      a.addEventListener('click', () => {
-        const visitor_id = getVisitorId();
-        const session_id = getSessionId();
-        const utm = readUTMs();
-        const event = {
-          event_id: uuidv4(),
-          event_name: 'link_click',
-          visitor_id,
-          session_id,
-          page_path: location.pathname,
-          link_id: a.dataset.linkId,
-          label: a.dataset.label || (a.textContent || '').trim() || null,
-          destination_url: a.dataset.encHref ? atob(a.dataset.encHref) : a.href,
-          referrer: document.referrer || null,
-          ...utm
-        };
-        sendEvent(event);
-      }, { passive: true });
-    });
+    document.body.addEventListener('click', (e) => {
+      const a = e.target.closest('a[data-link-id][href]');
+      if (!a) return;
+
+      const visitor_id = getVisitorId();
+      const session_id = getSessionId();
+      const utm = readUTMs();
+      const event = {
+        event_id: uuidv4(),
+        event_name: 'link_click',
+        visitor_id,
+        session_id,
+        page_path: location.pathname,
+        link_id: a.dataset.linkId,
+        label: a.dataset.label || (a.textContent || '').trim() || null,
+        destination_url: a.dataset.encHref ? atob(a.dataset.encHref) : a.href,
+        referrer: document.referrer || null,
+        ...utm
+      };
+      sendEvent(event);
+    }, { passive: true });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
