@@ -167,7 +167,7 @@ function validateOrigin(origin, allowedOrigin) {
 
 function isBot(ua) {
   const s = (ua || '').toLowerCase();
-  return BOT_UA_SUBSTRINGS.some(sub => s.includes(sub));
+  return BOT_UA_SUBSTRINGS.some(sub => s.includes(sub.toLowerCase()));
 }
 
 function corsHeaders(origin, allowedOrigin) {
@@ -632,7 +632,41 @@ async function handleSummary(request, env, origin, allowedOrigin) {
     LIMIT 50;
   `;
 
+  const botUaSql = `
+    SELECT user_agent, COUNT(*) as hits
+    FROM events
+    WHERE occurred_at BETWEEN ? AND ? AND is_bot=1 AND user_agent IS NOT NULL
+    GROUP BY user_agent
+    ORDER BY hits DESC
+    LIMIT 10;
+  `;
+
+  const botCountriesSql = `
+    SELECT country, COUNT(*) as hits
+    FROM events
+    WHERE occurred_at BETWEEN ? AND ? AND is_bot=1 AND country IS NOT NULL
+    GROUP BY country
+    ORDER BY hits DESC
+    LIMIT 10;
+  `;
+
+  const botReferrersSql = `
+    SELECT referrer, COUNT(*) as hits
+    FROM events
+    WHERE occurred_at BETWEEN ? AND ? AND is_bot=1 AND referrer IS NOT NULL AND referrer <> ''
+    GROUP BY referrer
+    ORDER BY hits DESC
+    LIMIT 10;
+  `;
+
+  const botEventsSql = `
+    SELECT COUNT(*) as bot_events
+    FROM events
+    WHERE occurred_at BETWEEN ? AND ? AND is_bot=1;
+  `;
+
   const totals = await env.DB.prepare(totalsSql).bind(startMs, endMs).first();
+  const botTotals = await env.DB.prepare(botEventsSql).bind(startMs, endMs).first();
   const topLinks = await env.DB.prepare(topLinksSql).bind(startMs, endMs).all();
   const referrers = await env.DB.prepare(referrersSql).bind(startMs, endMs).all();
   const countries = await env.DB.prepare(countriesSql).bind(startMs, endMs).all();
@@ -644,14 +678,19 @@ async function handleSummary(request, env, origin, allowedOrigin) {
   const peakHours = await env.DB.prepare(peakHoursSql).bind(startMs, endMs).all();
   const utmCampaigns = await env.DB.prepare(utmCampaignsSql).bind(startMs, endMs).all();
   const recentActivity = await env.DB.prepare(recentActivitySql).bind(startMs, endMs).all();
+  
+  const botUserAgents = await env.DB.prepare(botUaSql).bind(startMs, endMs).all();
+  const botCountries = await env.DB.prepare(botCountriesSql).bind(startMs, endMs).all();
+  const botReferrers = await env.DB.prepare(botReferrersSql).bind(startMs, endMs).all();
 
   const pageviews = totals?.pageviews || 0;
   const clicks = totals?.clicks || 0;
   const uniques = totals?.uniques || 0;
   const ctr = pageviews ? clicks / pageviews : 0;
+  const bot_events = botTotals?.bot_events || 0;
 
   return json({
-    totals: { pageviews, clicks, uniques, ctr },
+    totals: { pageviews, clicks, uniques, ctr, bot_events },
     top_links: topLinks?.results || [],
     top_referrers: referrers?.results || [],
     top_countries: countries?.results || [],
@@ -662,7 +701,10 @@ async function handleSummary(request, env, origin, allowedOrigin) {
     timeseries: series?.results || [],
     peak_hours: peakHours?.results || [],
     utm_campaigns: utmCampaigns?.results || [],
-    recent_activity: recentActivity?.results || []
+    recent_activity: recentActivity?.results || [],
+    bot_user_agents: botUserAgents?.results || [],
+    bot_countries: botCountries?.results || [],
+    bot_referrers: botReferrers?.results || []
   }, origin, allowedOrigin);
 }
 
