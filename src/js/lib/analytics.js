@@ -57,7 +57,7 @@
     const bots = [
       'bot', 'crawler', 'spider', 'slurp', 'inspect',
       'headless', 'phantom', 'puppeteer', 'chrome-lighthouse',
-      'facebookexternalhit', 'instagram', 'twitterbot', 'tiktok'
+      'facebookexternalhit', 'twitterbot'
     ];
     if (navigator.webdriver) return true;
     return bots.some(b => ua.includes(b));
