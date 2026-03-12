@@ -57,6 +57,7 @@
     kpiClicks: document.getElementById('kpi-clicks'),
     kpiUniques: document.getElementById('kpi-uniques'),
     kpiCtr: document.getElementById('kpi-ctr'),
+    kpiBots: document.getElementById('kpi-bots'),
     chart: document.getElementById('chart'),
     heatmap: document.getElementById('heatmap'),
     activityFeed: document.getElementById('activity-feed'),
@@ -212,6 +213,10 @@
     animateValue(els.kpiUniques, totals.uniques || 0, '', 700);
     const ctr = (totals.ctr || 0) * 100;
     animateValue(els.kpiCtr, ctr, '%', 700);
+    
+    // Check if bots metric exists directly, or calculate from bot ratio if provided
+    const totalBots = totals.bot_events || Math.round((totals.pageviews || 0) * (totals.bot_ratio || 0));
+    animateValue(els.kpiBots, totalBots, '', 700);
   }
 
   // =========================================================================
