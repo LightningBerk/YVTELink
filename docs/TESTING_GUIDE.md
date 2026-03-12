@@ -124,7 +124,7 @@ Check Network tab in DevTools:
 
 **Images:**
 - [ ] `/assets/images/YVTEBATH-CENSOR.png` - Status 200
-- [ ] `/assets/images/fanvueHero.png` - Status 200
+- [ ] `/assets/images/exclusiveHero.png` - Status 200
 - [ ] `/assets/icons/eyes-icon.svg` - Status 200
 
 ## Common Issues & Fixes

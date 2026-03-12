@@ -73,7 +73,7 @@
     const modal = document.getElementById("age-gate-modal");
     const btnCancel = document.getElementById("age-gate-cancel");
     const btnConfirm = document.getElementById("age-gate-confirm");
-    const fanvueLinks = document.querySelectorAll('a[data-link-id="fanvue"]');
+    const exclusiveLinks = document.querySelectorAll('a[data-link-id="exclusive"]');
 
     if (!modal || !btnCancel || !btnConfirm) return;
 
@@ -96,7 +96,7 @@
       }
     }
 
-    fanvueLinks.forEach((link) => {
+    exclusiveLinks.forEach((link) => {
       link.addEventListener("click", openModal);
     });
 

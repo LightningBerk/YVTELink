@@ -426,9 +426,9 @@ a {
   .link-gallery-inner > article:last-of-type .link-card-background {
     background-position: right center !important;
   }
-  /* Mobile: use fanvueHero for TikTok card */
+  /* Mobile: use exclusiveHero for TikTok card */
   .link-gallery-inner > article:nth-of-type(3) {
-    --card-bg: url("/assets/images/fanvueHero.png") !important;
+    --card-bg: url("/assets/images/exclusiveHero.png") !important;
   }
   /* Mobile: disable hover effects */
   .link-card:hover .link-card-background {
