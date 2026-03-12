@@ -68,6 +68,9 @@
     osTbody: document.querySelector('#operating-systems tbody'),
     browsersTbody: document.querySelector('#browsers tbody'),
     utmTbody: document.querySelector('#utm-campaigns tbody'),
+    botUATbody: document.querySelector('#bot-user-agents tbody'),
+    botCountriesTbody: document.querySelector('#bot-countries tbody'),
+    botRefTbody: document.querySelector('#bot-referrers tbody'),
     dateStartGroup: document.getElementById('date-start-group'),
     dateEndGroup: document.getElementById('date-end-group'),
     map: document.getElementById('map')
@@ -880,6 +883,10 @@
       renderHeatmap(summary.peak_hours || []);
       renderActivityFeed(summary.recent_activity || []);
 
+      renderTable(els.botUATbody, summary.bot_user_agents || [], ['user_agent', 'hits']);
+      renderTable(els.botCountriesTbody, summary.bot_countries || [], ['country', 'hits']);
+      renderTable(els.botRefTbody, summary.bot_referrers || [], ['referrer', 'hits']);
+
       if (els.lastUpdated) {
         els.lastUpdated.textContent = new Date().toLocaleTimeString();
       }
@@ -942,6 +949,19 @@
     lines.push('', 'TIMESERIES', `Date,Pageviews,Clicks`);
     (lastData.timeseries || []).forEach(row => {
       lines.push(`${row.day || ''},${row.pageviews || 0},${row.clicks || 0}`);
+    });
+
+    lines.push('', 'BOT USER AGENTS', `User Agent,Hits`);
+    (lastData.bot_user_agents || []).forEach(row => {
+      lines.push(`"${row.user_agent || 'Unknown'}",${row.hits || 0}`);
+    });
+    lines.push('', 'BOT COUNTRIES', `Country,Hits`);
+    (lastData.bot_countries || []).forEach(row => {
+      lines.push(`"${row.country || 'Unknown'}",${row.hits || 0}`);
+    });
+    lines.push('', 'BOT REFERRERS', `Referrer,Hits`);
+    (lastData.bot_referrers || []).forEach(row => {
+      lines.push(`"${row.referrer || 'Unknown'}",${row.hits || 0}`);
     });
 
     const csv = lines.join('\n');

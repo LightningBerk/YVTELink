@@ -35,12 +35,23 @@
   const totalClicks = timeseries.reduce((s, d) => s + d.clicks, 0);
   const totalUniques = Math.round(totalPageviews * 0.62);
 
+  // Derive total bot traffic for the top widget from the bot_user_agents
+  const botUserAgents = [
+    { user_agent: 'Instagram Crawler', hits: rand(300, 800) },
+    { user_agent: 'TikTok Bot', hits: rand(150, 400) },
+    { user_agent: 'TwitterBot/1.0', hits: rand(80, 200) },
+    { user_agent: 'HeadlessChrome/114.0', hits: rand(50, 120) },
+    { user_agent: 'Googlebot/2.1', hits: rand(20, 80) }
+  ];
+  const totalBots = botUserAgents.reduce((s, b) => s + b.hits, 0);
+
   const MOCK_SUMMARY = {
     totals: {
       pageviews: totalPageviews,
       clicks: totalClicks,
       uniques: totalUniques,
-      ctr: totalClicks / Math.max(totalPageviews, 1)
+      ctr: totalClicks / Math.max(totalPageviews, 1),
+      bot_events: totalBots
     },
 
     timeseries,
@@ -113,6 +124,23 @@
       { city: 'Chicago', country: 'US', latitude: '41.8781', longitude: '-87.6298', pageviews: rand(30, 90), uniques: rand(18, 55) },
       { city: 'Paris', country: 'FR', latitude: '48.8566', longitude: '2.3522', pageviews: rand(20, 60), uniques: rand(12, 35) },
       { city: 'Amsterdam', country: 'NL', latitude: '52.3676', longitude: '4.9041', pageviews: rand(10, 40), uniques: rand(8, 25) }
+    ],
+
+    bot_user_agents: botUserAgents,
+
+    bot_countries: [
+      { country: 'United States', hits: rand(200, 500) },
+      { country: 'Germany (Frankfurt AWS)', hits: rand(100, 300) },
+      { country: 'Ireland (AWS)', hits: rand(80, 200) },
+      { country: 'Singapore', hits: rand(30, 100) },
+      { country: 'Unknown', hits: rand(10, 50) }
+    ],
+
+    bot_referrers: [
+      { referrer: 'instagram.com', hits: rand(300, 700) },
+      { referrer: 'Direct (No Referrer)', hits: rand(100, 300) },
+      { referrer: 'tiktok.com', hits: rand(80, 200) },
+      { referrer: 't.co', hits: rand(30, 100) }
     ],
 
     peak_hours: (() => {

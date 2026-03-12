@@ -256,6 +256,58 @@
       </div>
     </div>
 
+    <div class="section" style="border: 2px solid var(--accent-orange, #ff9f43); padding: var(--space-4); border-radius: 12px; background: rgba(255, 159, 67, 0.05); margin-top: var(--space-5);">
+      <h2 style="color: var(--accent-orange, #ff9f43); display: flex; align-items: center; gap: 8px;">
+        <span>🤖</span> Bot Traffic Analysis
+      </h2>
+      <p>Deep-dive into flagged crawler activity to monitor scraper sources and geographic locations.</p>
+      
+      <div class="device-grid" style="margin-top: var(--space-4);">
+        <div>
+          <h3 style="color: var(--accent-orange, #ff9f43);">Top Bot User Agents</h3>
+          <div class="table-wrapper" style="border-color: rgba(255, 159, 67, 0.2);">
+            <table id="bot-user-agents">
+              <thead>
+                <tr>
+                  <th>User Agent</th>
+                  <th style="width:80px;text-align:right">Hits</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <h3 style="color: var(--accent-orange, #ff9f43);">Bot Traffic by Country</h3>
+          <div class="table-wrapper" style="border-color: rgba(255, 159, 67, 0.2);">
+            <table id="bot-countries">
+              <thead>
+                <tr>
+                  <th>Country</th>
+                  <th style="width:80px;text-align:right">Hits</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <h3 style="color: var(--accent-orange, #ff9f43);">Bot Referral Sources</h3>
+          <div class="table-wrapper" style="border-color: rgba(255, 159, 67, 0.2);">
+            <table id="bot-referrers">
+              <thead>
+                <tr>
+                  <th>Referrer</th>
+                  <th style="width:80px;text-align:right">Hits</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="section">
       <h2>Device Breakdown</h2>
       <div class="device-grid">
